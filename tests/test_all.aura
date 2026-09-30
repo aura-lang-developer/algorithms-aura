@@ -1,0 +1,42 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// tests/test_all.aura - Ejecutor Unificado de Pruebas Automatizadas
+// ==============================================================================
+
+import {
+  runStructuresTestSuite
+} from "./test_structures";
+
+import {
+  runAlgorithmsTestSuite
+} from "./test_algorithms";
+
+/// Punto de entrada unificado para la ejecución global de todas las suites de prueba:
+/// - 9 pruebas de estructuras de datos (`test_structures.aura`)
+/// - 5 pruebas de algoritmos fundamentales (`test_algorithms.aura`)
+///
+/// Retorno:
+/// - `Unit`: Imprime el resumen consolidado de pruebas exitosas y fallidas.
+export fn main(): Unit => {
+  println("");
+  println("#################################################################");
+  println("       EJECUTOR GLOBAL DE PRUEBAS — AURA LANG DS&A SUITE         ");
+  println("#################################################################");
+  println("");
+
+  let structuresPassed = runStructuresTestSuite();
+  println("");
+  let algorithmsPassed = runAlgorithmsTestSuite();
+
+  println("");
+  println("#################################################################");
+  if structuresPassed && algorithmsPassed {
+    println("  🏆 RESULTADO FINAL: 14/14 PRUEBAS EXITOSAS (100% PASSED)");
+    println("  ✨ Todas las estructuras y algoritmos cumplen con sus especificaciones.");
+  } else {
+    println("  ❌ RESULTADO FINAL: Se detectaron fallos en la suite de pruebas.");
+  }
+  println("#################################################################");
+  println("");
+  return;
+};

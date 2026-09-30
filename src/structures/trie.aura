@@ -1,0 +1,200 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/structures/trie.aura - Árbol de Prefijos (Trie / Prefix Tree)
+// ==============================================================================
+
+/// Representa un nodo individual en la estructura del Árbol de Prefijos (Trie).
+///
+/// Campos:
+///   - `char`: Carácter unitario representado por este nodo (`String`).
+///   - `isEndOfWord`: Bandera booleana que indica si una palabra válida finaliza en este nodo.
+///   - `children`: Índices de los nodos hijos en el pool de nodos del Trie (`[]Int`).
+export type TrieNode = {
+  char: String,
+  isEndOfWord: Bool,
+  children: []Int,
+};
+
+/// Estructura de Árbol de Prefijos (Trie).
+///
+/// Permite almacenamiento y búsqueda de cadenas de texto y prefijos compartidos
+/// en tiempo proporcional a la longitud de la cadena.
+///
+/// Campos:
+///   - `nodes`: Slice contenedor de todos los nodos del árbol (`[]TrieNode`). El nodo raíz reside en el índice 0.
+export type Trie = {
+  nodes: []TrieNode,
+};
+
+/// Crea e inicializa un nuevo Trie con un nodo raíz vacío en el índice 0.
+///
+/// Parámetros:
+///   - Ninguno.
+///
+/// Retorno:
+///   - `Trie`: Nueva estructura con la raíz inicializada.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn newTrie(): Trie => {
+  let emptyChildren: []Int = [];
+  let rootNode: TrieNode = {
+    char: "",
+    isEndOfWord: false,
+    children: emptyChildren,
+  };
+  let mut nodesList: []TrieNode = [];
+  nodesList.push(rootNode);
+  return {
+    nodes: nodesList,
+  };
+};
+
+/// Inserta una palabra completa en el Trie carácter a carácter.
+///
+/// Si los prefijos ya existen, se reutilizan los nodos preexistentes;
+/// de lo contrario, se crean nuevos nodos hijos.
+///
+/// Parámetros:
+///   - `trie`: Referencia a la estructura `Trie`.
+///   - `word`: Cadena de texto (`String`) a indexar.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras finalizar la indexación.
+///
+/// Complejidad:
+///   - Temporal: O(L) donde L es la longitud de la palabra
+///   - Espacial: O(L) en el peor caso si ningún nodo existía previamente
+export fn insertWord(trie: Trie, word: String): Unit => {
+  let mut currentIdx = 0;
+  let mut i = 0;
+
+  while i < word.length {
+    let ch = word[i];
+    let mut foundChildIdx = -1;
+
+    // Buscar si el carácter ya existe entre los hijos del nodo actual
+    let currChildren = trie.nodes[currentIdx].children;
+    let mut c = 0;
+    while c < currChildren.length {
+      let childNodeIdx = currChildren[c];
+      if trie.nodes[childNodeIdx].char == ch {
+        foundChildIdx = childNodeIdx;
+      }
+      c = c + 1;
+    }
+
+    if foundChildIdx == -1 {
+      // Crear un nuevo nodo para este carácter
+      let newChildIdx = trie.nodes.length;
+      let emptyChildList: []Int = [];
+      let newNode: TrieNode = {
+        char: ch,
+        isEndOfWord: false,
+        children: emptyChildList,
+      };
+      trie.nodes.push(newNode);
+      trie.nodes[currentIdx].children.push(newChildIdx);
+      currentIdx = newChildIdx;
+    } else {
+      currentIdx = foundChildIdx;
+    }
+
+    i = i + 1;
+  }
+
+  // Marcar el último nodo como fin de palabra
+  let lastNode = trie.nodes[currentIdx];
+  trie.nodes[currentIdx] = {
+    char: lastNode.char,
+    isEndOfWord: true,
+    children: lastNode.children,
+  };
+  return;
+};
+
+/// Busca si una palabra exacta se encuentra registrada en el Trie.
+///
+/// Para retornar `true`, todos los caracteres deben coincidir y el nodo final
+/// debe tener activa la bandera `isEndOfWord`.
+///
+/// Parámetros:
+///   - `trie`: Referencia a la estructura `Trie`.
+///   - `word`: Cadena de texto (`String`) a buscar.
+///
+/// Retorno:
+///   - `Bool`: `true` si la palabra exacta existe; `false` en caso contrario.
+///
+/// Complejidad:
+///   - Temporal: O(L) donde L es la longitud de la palabra
+///   - Espacial: O(1)
+export fn searchWord(trie: Trie, word: String): Bool => {
+  let mut currentIdx = 0;
+  let mut i = 0;
+
+  while i < word.length {
+    let ch = word[i];
+    let mut foundChildIdx = -1;
+
+    let currChildren = trie.nodes[currentIdx].children;
+    let mut c = 0;
+    while c < currChildren.length {
+      let childNodeIdx = currChildren[c];
+      if trie.nodes[childNodeIdx].char == ch {
+        foundChildIdx = childNodeIdx;
+      }
+      c = c + 1;
+    }
+
+    if foundChildIdx == -1 {
+      return false;
+    }
+    currentIdx = foundChildIdx;
+    i = i + 1;
+  }
+
+  return trie.nodes[currentIdx].isEndOfWord;
+};
+
+/// Verifica si existe al menos una palabra en el Trie que comience con el prefijo especificado.
+///
+/// A diferencia de `searchWord`, no requiere que el nodo final tenga activa la bandera `isEndOfWord`.
+///
+/// Parámetros:
+///   - `trie`: Referencia a la estructura `Trie`.
+///   - `prefix`: Cadena de prefijo a validar (`String`).
+///
+/// Retorno:
+///   - `Bool`: `true` si el camino del prefijo existe en el árbol; `false` si se interrumpe.
+///
+/// Complejidad:
+///   - Temporal: O(P) donde P es la longitud del prefijo
+///   - Espacial: O(1)
+export fn startsWith(trie: Trie, prefix: String): Bool => {
+  let mut currentIdx = 0;
+  let mut i = 0;
+
+  while i < prefix.length {
+    let ch = prefix[i];
+    let mut foundChildIdx = -1;
+
+    let currChildren = trie.nodes[currentIdx].children;
+    let mut c = 0;
+    while c < currChildren.length {
+      let childNodeIdx = currChildren[c];
+      if trie.nodes[childNodeIdx].char == ch {
+        foundChildIdx = childNodeIdx;
+      }
+      c = c + 1;
+    }
+
+    if foundChildIdx == -1 {
+      return false;
+    }
+    currentIdx = foundChildIdx;
+    i = i + 1;
+  }
+
+  return true;
+};

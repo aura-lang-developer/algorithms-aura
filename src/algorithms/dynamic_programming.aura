@@ -1,0 +1,249 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/algorithms/dynamic_programming.aura - Programación Dinámica y Optimización
+// ==============================================================================
+// Algoritmos Implementados:
+//   1. Fibonacci (Tabulación):               O(n) tiempo, O(1) espacio
+//   2. Problema de la Mochila 0/1 (Knapsack): O(n * W) tiempo, O(W) espacio
+//   3. Longest Common Subsequence (LCS):      O(m * n) tiempo, O(m * n) espacio
+//   4. Cambio Mínimo de Monedas (Coin Change): O(amount * |coins|) tiempo, O(amount) espacio
+//   5. Máxima Suma de Subarreglo (Kadane):    O(n) tiempo, O(1) espacio
+// ==============================================================================
+
+/// 1. Fibonacci con Tabulación Bottom-Up en Espacio O(1)
+/// Calcula el n-ésimo término de la sucesión de Fibonacci utilizando tabulación
+/// bottom-up (programación dinámica iterativa) optimizada en espacio constante.
+///
+/// Casos base:
+/// - F(0) = 0
+/// - F(1) = 1
+///
+/// Parámetros:
+/// - `n`: Índice del término de la sucesión a calcular (debe ser no negativo).
+///
+/// Retorno:
+/// - `Int`: El valor de F(n). Si n <= 0, retorna 0.
+///
+/// Complejidad:
+/// - Tiempo: O(n)
+/// - Espacio: O(1)
+export fn fibonacci(n: Int): Int => {
+  if n <= 0 {
+    return 0;
+  }
+  if n == 1 {
+    return 1;
+  }
+
+  let mut prev2 = 0;
+  let mut prev1 = 1;
+  let mut current = 0;
+  let mut i = 2;
+
+  while i <= n {
+    current = prev1 + prev2;
+    prev2 = prev1;
+    prev1 = current;
+    i = i + 1;
+  }
+
+  return current;
+};
+
+/// 2. Problema de la Mochila 0/1 (0/1 Knapsack Problem)
+/// Resuelve el Problema de la Mochila 0/1 usando programación dinámica con optimización
+/// de espacio en un único arreglo unidimensional.
+///
+/// Determina el valor acumulado máximo que puede cargarse en una mochila con límite
+/// de peso fijo, donde cada ítem puede tomarse a lo sumo una vez (0 o 1).
+///
+/// Parámetros:
+/// - `weights`: Arreglo con los pesos de cada ítem disponible.
+/// - `values`: Arreglo con los valores económicos o beneficios de cada ítem.
+/// - `capacity`: Capacidad máxima de carga en peso de la mochila.
+///
+/// Retorno:
+/// - `Int`: El valor monetario o beneficio total máximo alcanzable sin exceder la capacidad.
+///
+/// Complejidad:
+/// - Tiempo: O(n * W), donde n es el número de ítems y W es la capacidad.
+/// - Espacio: O(W), gracias a la compresión de la tabla DP en un único arreglo recorrido en reversa.
+export fn knapsack01(weights: []Int, values: []Int, capacity: Int): Int => {
+  let mut dp: []Int = [];
+  let mut w = 0;
+  while w <= capacity {
+    dp.push(0);
+    w = w + 1;
+  }
+
+  let mut i = 0;
+  while i < weights.length {
+    let itemWeight = weights[i];
+    let itemVal = values[i];
+    let mut cap = capacity;
+
+    while cap >= itemWeight {
+      let withItem = dp[cap - itemWeight] + itemVal;
+      if withItem > dp[cap] {
+        dp[cap] = withItem;
+      }
+      cap = cap - 1;
+    }
+
+    i = i + 1;
+  }
+
+  return dp[capacity];
+};
+
+/// 3. Subsecuencia Común Más Larga (Longest Common Subsequence - LCS)
+/// Encuentra la longitud de la subsecuencia más larga compartida entre dos cadenas
+/// de texto mediante programación dinámica tabular 2D.
+///
+/// Una subsecuencia es una secuencia generada omitiendo cero o más caracteres sin alterar
+/// el orden relativo de los caracteres restantes.
+///
+/// Parámetros:
+/// - `s1`: Primera cadena de texto (longitud m).
+/// - `s2`: Segunda cadena de texto (longitud n).
+///
+/// Retorno:
+/// - `Int`: Longitud de la subsecuencia común más larga compartida por ambas cadenas.
+///
+/// Complejidad:
+/// - Tiempo: O(m * n), donde m y n son las longitudes de las cadenas.
+/// - Espacio: O(m * n), representados linealmente en un arreglo de tamaño (m + 1) * (n + 1).
+export fn longestCommonSubsequence(s1: String, s2: String): Int => {
+  let m = s1.length;
+  let n = s2.length;
+  let totalCells = (m + 1) * (n + 1);
+
+  let mut dp: []Int = [];
+  let mut k = 0;
+  while k < totalCells {
+    dp.push(0);
+    k = k + 1;
+  }
+
+  let mut i = 1;
+  while i <= m {
+    let mut j = 1;
+    while j <= n {
+      let idx = i * (n + 1) + j;
+      let c1 = s1[i - 1];
+      let c2 = s2[j - 1];
+
+      if c1 == c2 {
+        let diagIdx = (i - 1) * (n + 1) + (j - 1);
+        dp[idx] = dp[diagIdx] + 1;
+      } else {
+        let upIdx = (i - 1) * (n + 1) + j;
+        let leftIdx = i * (n + 1) + (j - 1);
+        let up = dp[upIdx];
+        let left = dp[leftIdx];
+        dp[idx] = if up > left { up } else { left };
+      }
+
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+
+  let resIdx = m * (n + 1) + n;
+  return dp[resIdx];
+};
+
+/// 4. Mínima Cantidad de Monedas para Cambio (Coin Change Problem)
+/// Resuelve el problema del cambio mínimo de monedas usando programación dinámica bottom-up.
+///
+/// Determina la cantidad mínima de monedas necesarias para sumar un monto exacto,
+/// asumiendo suministro infinito de cada denominación disponible.
+///
+/// Parámetros:
+/// - `coins`: Arreglo con las denominaciones de monedas disponibles (enteros positivos).
+/// - `amount`: Monto total objetivo que se desea componer.
+///
+/// Retorno:
+/// - `Int`: Número mínimo de monedas necesarias para formar el monto exacto, o `-1`
+///          si la combinación no es alcanzable con las denominaciones dadas.
+///
+/// Complejidad:
+/// - Tiempo: O(amount * k), donde k es la cantidad de tipos de monedas.
+/// - Espacio: O(amount), tamaño de la tabla de memorización tabular.
+export fn minCoinChange(coins: []Int, amount: Int): Int => {
+  if amount <= 0 {
+    return 0;
+  }
+
+  let infCoins = 999999;
+  let mut dp: []Int = [];
+  let mut a = 0;
+  while a <= amount {
+    dp.push(infCoins);
+    a = a + 1;
+  }
+  dp[0] = 0;
+
+  let mut i = 1;
+  while i <= amount {
+    let mut c = 0;
+    while c < coins.length {
+      let coin = coins[c];
+      if coin <= i {
+        let prev = dp[i - coin];
+        if prev != infCoins {
+          let candidate = prev + 1;
+          if candidate < dp[i] {
+            dp[i] = candidate;
+          }
+        }
+      }
+      c = c + 1;
+    }
+    i = i + 1;
+  }
+
+  if dp[amount] == infCoins {
+    return -1;
+  }
+  return dp[amount];
+};
+
+/// 5. Algoritmo de Kadane: Suma Máxima de Subarreglo Contiguo
+/// Encuentra la suma máxima posible en cualquier subarreglo contiguo no vacío
+/// dentro de una secuencia de enteros.
+///
+/// Mantiene en cada paso la máxima suma local acumulada que termina en la posición actual,
+/// actualizando la mejor suma global encontrada en tiempo lineal y memoria constante.
+///
+/// Parámetros:
+/// - `arr`: Arreglo de números enteros (puede incluir valores negativos y positivos).
+///
+/// Retorno:
+/// - `Int`: La mayor suma obtenible sumando elementos contiguos. Retorna 0 si el arreglo está vacío.
+///
+/// Complejidad:
+/// - Tiempo: O(n), donde n es la longitud del arreglo.
+/// - Espacio: O(1), memoria auxiliar constante.
+export fn maxSubarraySum(arr: []Int): Int => {
+  if arr.length == 0 {
+    return 0;
+  }
+
+  let mut maxSoFar = arr[0];
+  let mut currentMax = arr[0];
+  let mut i = 1;
+
+  while i < arr.length {
+    let val = arr[i];
+    let sum = currentMax + val;
+    currentMax = if val > sum { val } else { sum };
+
+    if currentMax > maxSoFar {
+      maxSoFar = currentMax;
+    }
+    i = i + 1;
+  }
+
+  return maxSoFar;
+};

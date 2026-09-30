@@ -1,0 +1,218 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/algorithms/graphs.aura - Recorridos (BFS/DFS) y Camino Mínimo (Dijkstra)
+// ==============================================================================
+
+import {
+  Graph,
+  GraphEdge,
+  GraphVertex,
+  vertexCount
+} from "../structures/graph";
+
+/// Recorrido en Anchura (Breadth-First Search - BFS).
+///
+/// Explora los vértices por capas concéntricas utilizando una cola FIFO.
+/// Determina caminos mínimos en términos de cantidad de aristas en grafos no ponderados.
+///
+/// Parámetros:
+///   - `g`: Estructura del grafo a recorrer (`Graph`).
+///   - `startId`: Identificador del vértice inicial (`Int`).
+///
+/// Retorno:
+///   - `[]Int`: Secuencia ordenada de vértices visitados según el orden de extracción de la cola.
+///
+/// Complejidad:
+///   - Temporal: O(V + E) donde V es el número de vértices y E el de aristas
+///   - Espacial: O(V) para el arreglo de visitados y la cola
+export fn bfs(g: Graph, startId: Int): []Int => {
+  let totalV = vertexCount(g);
+  let mut order: []Int = [];
+  if startId < 0 || startId >= totalV {
+    return order;
+  }
+
+  let mut visited: []Bool = [];
+  let mut i = 0;
+  while i < totalV {
+    visited.push(false);
+    i = i + 1;
+  }
+
+  let mut queue: []Int = [startId];
+  let mut head = 0;
+  visited[startId] = true;
+
+  while head < queue.length {
+    let curr = queue[head];
+    head = head + 1;
+    order.push(curr);
+
+    let edges = g.vertices[curr].edges;
+    let mut eIdx = 0;
+    while eIdx < edges.length {
+      let neighbor = edges[eIdx].to;
+      if !visited[neighbor] {
+        visited[neighbor] = true;
+        queue.push(neighbor);
+      }
+      eIdx = eIdx + 1;
+    }
+  }
+
+  return order;
+};
+
+/// Función auxiliar recursiva para el Recorrido en Profundidad (DFS).
+///
+/// Parámetros:
+///   - `g`: Grafo en recorrido (`Graph`).
+///   - `curr`: Identificador del vértice actual bajo exploración.
+///   - `visited`: Arreglo mutable de banderas de nodos visitados (`[]Bool`).
+///   - `order`: Slice acumulador mutable con la secuencia de visita (`[]Int`).
+///
+/// Retorno:
+///   - `Unit`: Retorna `()`.
+///
+/// Complejidad:
+///   - Temporal: O(deg(curr))
+///   - Espacial: O(V) en la pila de llamadas recursivas
+export fn dfsRecursive(g: Graph, curr: Int, visited: []Bool, order: []Int): Unit => {
+  visited[curr] = true;
+  order.push(curr);
+
+  let edges = g.vertices[curr].edges;
+  let mut i = 0;
+  while i < edges.length {
+    let neighbor = edges[i].to;
+    if !visited[neighbor] {
+      dfsRecursive(g, neighbor, visited, order);
+    }
+    i = i + 1;
+  }
+  return;
+};
+
+/// Recorrido en Profundidad (Depth-First Search - DFS).
+///
+/// Explora los caminos hasta el nodo más profundo antes de retroceder (*backtracking*).
+/// Útil para análisis de conectividad, orden topológico y detección de ciclos.
+///
+/// Parámetros:
+///   - `g`: Grafo a recorrer (`Graph`).
+///   - `startId`: Identificador del vértice raíz de la exploración (`Int`).
+///
+/// Retorno:
+///   - `[]Int`: Secuencia de visita de los vértices alcanzables desde `startId`.
+///
+/// Complejidad:
+///   - Temporal: O(V + E)
+///   - Espacial: O(V)
+export fn dfs(g: Graph, startId: Int): []Int => {
+  let totalV = vertexCount(g);
+  let mut order: []Int = [];
+  if startId < 0 || startId >= totalV {
+    return order;
+  }
+
+  let mut visited: []Bool = [];
+  let mut i = 0;
+  while i < totalV {
+    visited.push(false);
+    i = i + 1;
+  }
+
+  dfsRecursive(g, startId, visited, order);
+  return order;
+};
+
+/// Algoritmo de Dijkstra para Rutas y Caminos Mínimos.
+///
+/// Calcula la distancia mínima acumulada desde un vértice origen hacia todos
+/// los demás vértices del grafo con aristas de peso no negativo.
+///
+/// Parámetros:
+///   - `g`: Estructura del grafo ponderado (`Graph`).
+///   - `startId`: Vértice de origen (`Int`).
+///
+/// Retorno:
+///   - `[]Int`: Arreglo de distancias mínimas donde `dist[v]` representa el costo mínimo desde `startId`.
+///     El valor `999999` denota inalcanzabilidad (infinito).
+///
+/// Complejidad:
+///   - Temporal: O(V^2)
+///   - Espacial: O(V)
+export fn dijkstra(g: Graph, startId: Int): []Int => {
+  let totalV = vertexCount(g);
+  let infDist = 999999;
+  let mut dist: []Int = [];
+  let mut visited: []Bool = [];
+
+  let mut i = 0;
+  while i < totalV {
+    dist.push(infDist);
+    visited.push(false);
+    i = i + 1;
+  }
+
+  if startId < 0 || startId >= totalV {
+    return dist;
+  }
+  dist[startId] = 0;
+
+  let mut count = 0;
+  while count < totalV {
+    let mut minDistance = infDist;
+    let mut minVertex = -1;
+
+    let mut v = 0;
+    while v < totalV {
+      let isVis = visited[v];
+      if !isVis && dist[v] <= minDistance {
+        minDistance = dist[v];
+        minVertex = v;
+      }
+      v = v + 1;
+    }
+
+    if minVertex == -1 || minDistance == infDist {
+      count = totalV;
+    } else {
+      visited[minVertex] = true;
+
+      let edges = g.vertices[minVertex].edges;
+      let mut e = 0;
+      while e < edges.length {
+        let neighbor = edges[e].to;
+        let weight = edges[e].weight;
+        let newDist = dist[minVertex] + weight;
+
+        if !visited[neighbor] && newDist < dist[neighbor] {
+          dist[neighbor] = newDist;
+        }
+        e = e + 1;
+      }
+
+      count = count + 1;
+    }
+  }
+
+  return dist;
+};
+
+/// Determina si todos los vértices del grafo son alcanzables a partir de un nodo inicial.
+///
+/// Parámetros:
+///   - `g`: Grafo a comprobar (`Graph`).
+///   - `startId`: Identificador del vértice inicial (`Int`).
+///
+/// Retorno:
+///   - `Bool`: `true` si la cantidad de nodos visitados por BFS equivale a |V|; `false` si el grafo está desconectado.
+///
+/// Complejidad:
+///   - Temporal: O(V + E)
+///   - Espacial: O(V)
+export fn isConnected(g: Graph, startId: Int): Bool => {
+  let visitedNodes = bfs(g, startId);
+  return visitedNodes.length == vertexCount(g);
+};

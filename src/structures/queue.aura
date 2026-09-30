@@ -1,0 +1,425 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/structures/queue.aura - Colas (FIFO), Búfer Circular y Deque
+// ==============================================================================
+
+// --- 1. Cola Básica (FIFO: First-In, First-Out) ---
+
+/// Estructura de Cola basada en un slice dinámico con índice de cabeza móvil.
+///
+/// Principio operativo:
+///   - FIFO (First-In, First-Out): El primer elemento en ingresar es el primero en ser procesado.
+///
+/// Campos:
+///   - `queueItems`: Slice contenedor de los elementos encolados (`[]Int`).
+///   - `headIndex`: Índice del cursor frontal donde se ubica el primer elemento activo.
+export type Queue = {
+  queueItems: []Int,
+  headIndex: Int,
+};
+
+/// Crea e inicializa una nueva instancia de cola FIFO vacía.
+///
+/// Parámetros:
+///   - Ninguno.
+///
+/// Retorno:
+///   - `Queue`: Estructura con slice vacío y cursor `headIndex` en 0.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn newQueue(): Queue => {
+  let initial: []Int = [];
+  return {
+    queueItems: initial,
+    headIndex: 0,
+  };
+};
+
+/// Inserta un nuevo elemento entero al final de la cola (Enqueue).
+///
+/// Parámetros:
+///   - `q`: Referencia a la cola `Queue` donde se agregará el elemento.
+///   - `val`: Valor numérico entero (`Int`) a encolar.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` al finalizar la inserción.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1) amortizado
+export fn enqueue(q: Queue, val: Int): Unit => {
+  q.queueItems.push(val);
+  return;
+};
+
+/// Extrae y remueve el primer elemento de la cola (Dequeue).
+///
+/// Aplica compactación de memoria cuando los elementos procesados superan
+/// el umbral de 32 elementos y la mitad del tamaño de la colección.
+///
+/// Parámetros:
+///   - `q`: Referencia a la cola `Queue` de la que se extraerá el elemento.
+///
+/// Retorno:
+///   - `Result<Int, String>`:
+///     - `Ok(Int)`: El valor entero retirado del frente de la cola.
+///     - `Err(String)`: Mensaje de error si la cola se encuentra vacía.
+///
+/// Complejidad:
+///   - Temporal: O(1) amortizado
+///   - Espacial: O(1)
+export fn dequeue(q: Queue): Result<Int, String> => {
+  let activeCount = q.queueItems.length - q.headIndex;
+  if activeCount <= 0 {
+    return Err("Cola vacía: no se puede ejecutar dequeue");
+  }
+
+  let val = q.queueItems[q.headIndex];
+  q.headIndex = q.headIndex + 1;
+
+  // Compactar la lista cuando se haya acumulado suficiente residuo
+  if q.headIndex >= 32 && q.headIndex >= (q.queueItems.length / 2) {
+    q.queueItems = q.queueItems[q.headIndex:q.queueItems.length];
+    q.headIndex = 0;
+  }
+
+  return Ok(val);
+};
+
+/// Consulta el elemento ubicado en el frente de la cola sin retirarlo.
+///
+/// Parámetros:
+///   - `q`: Referencia a la cola `Queue` a inspeccionar.
+///
+/// Retorno:
+///   - `Result<Int, String>`:
+///     - `Ok(Int)`: Valor del primer elemento si la cola no está vacía.
+///     - `Err(String)`: Mensaje de error si la cola no contiene elementos.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn queuePeek(q: Queue): Result<Int, String> => {
+  let activeCount = q.queueItems.length - q.headIndex;
+  if activeCount <= 0 {
+    return Err("Cola vacía: no se puede ejecutar peek");
+  }
+  return Ok(q.queueItems[q.headIndex]);
+};
+
+/// Indica si la cola carece de elementos activos pendientes de atención.
+///
+/// Parámetros:
+///   - `q`: Referencia a la cola `Queue` a evaluar.
+///
+/// Retorno:
+///   - `Bool`: `true` si la cola está vacía; `false` si contiene al menos un elemento.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn isQueueEmpty(q: Queue): Bool => {
+  return (q.queueItems.length - q.headIndex) <= 0;
+};
+
+/// Retorna la cantidad de elementos activos actualmente en la cola.
+///
+/// Parámetros:
+///   - `q`: Referencia a la cola `Queue` a cuantificar.
+///
+/// Retorno:
+///   - `Int`: Número de elementos pendientes de procesar.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn queueSize(q: Queue): Int => {
+  let count = q.queueItems.length - q.headIndex;
+  if count < 0 {
+    return 0;
+  }
+  return count;
+};
+
+// --- 2. Búfer Circular (Ring Buffer con capacidad fija) ---
+
+/// Estructura de Búfer Circular o de Anillo con capacidad estática finita.
+///
+/// Reutiliza las posiciones del arreglo de manera circular mediante aritmética modular.
+///
+/// Campos:
+///   - `data`: Arreglo de tamaño fijo reservado para los datos (`[]Int`).
+///   - `maxCapacity`: Límite máximo de elementos soportados.
+///   - `head`: Índice del puntero de lectura (extracción).
+///   - `tail`: Índice del puntero de escritura (inserción).
+///   - `count`: Cantidad de elementos ocupados actualmente.
+export type CircularBuffer = {
+  data: []Int,
+  maxCapacity: Int,
+  head: Int,
+  tail: Int,
+  count: Int,
+};
+
+/// Inicializa un nuevo búfer circular con la capacidad máxima indicada.
+///
+/// Parámetros:
+///   - `cap`: Capacidad máxima de almacenamiento deseada (mínimo 1).
+///
+/// Retorno:
+///   - `CircularBuffer`: Nueva estructura configurada con capacidad acotada.
+///
+/// Complejidad:
+///   - Temporal: O(cap) en inicialización
+///   - Espacial: O(cap)
+export fn newCircularBuffer(cap: Int): CircularBuffer => {
+  let effectiveCap = if cap < 1 { 8 } else { cap };
+  let mut initialData: []Int = [];
+  let mut i = 0;
+  while i < effectiveCap {
+    initialData.push(0);
+    i = i + 1;
+  }
+  return {
+    data: initialData,
+    maxCapacity: effectiveCap,
+    head: 0,
+    tail: 0,
+    count: 0,
+  };
+};
+
+/// Verifica si el búfer circular ha alcanzado su capacidad máxima permitida.
+///
+/// Parámetros:
+///   - `cb`: Referencia al búfer circular `CircularBuffer`.
+///
+/// Retorno:
+///   - `Bool`: `true` si el búfer está completamente lleno; `false` en caso contrario.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cbIsFull(cb: CircularBuffer): Bool => {
+  return cb.count == cb.maxCapacity;
+};
+
+/// Verifica si el búfer circular se encuentra totalmente vacío.
+///
+/// Parámetros:
+///   - `cb`: Referencia al búfer circular `CircularBuffer`.
+///
+/// Retorno:
+///   - `Bool`: `true` si no hay elementos almacenados; `false` si tiene al menos uno.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cbIsEmpty(cb: CircularBuffer): Bool => {
+  return cb.count == 0;
+};
+
+/// Retorna la cantidad de elementos ocupados en el búfer circular.
+///
+/// Parámetros:
+///   - `cb`: Referencia al búfer circular `CircularBuffer`.
+///
+/// Retorno:
+///   - `Int`: Cantidad de posiciones actualmente activas.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cbSize(cb: CircularBuffer): Int => {
+  return cb.count;
+};
+
+/// Inserta un valor entero en la posición `tail` del búfer circular si hay espacio.
+///
+/// Parámetros:
+///   - `cb`: Referencia al búfer circular `CircularBuffer`.
+///   - `val`: Valor numérico entero (`Int`) a encolar.
+///
+/// Retorno:
+///   - `Bool`: `true` si se insertó exitosamente; `false` si el búfer estaba lleno.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cbEnqueue(cb: CircularBuffer, val: Int): Bool => {
+  if cbIsFull(cb) {
+    return false;
+  }
+  cb.data[cb.tail] = val;
+  cb.tail = (cb.tail + 1) % cb.maxCapacity;
+  cb.count = cb.count + 1;
+  return true;
+};
+
+/// Extrae y remueve el valor más antiguo ubicado en la posición `head` del búfer circular.
+///
+/// Parámetros:
+///   - `cb`: Referencia al búfer circular `CircularBuffer`.
+///
+/// Retorno:
+///   - `Result<Int, String>`:
+///     - `Ok(Int)`: El elemento más antiguo extraído del búfer.
+///     - `Err(String)`: Mensaje de error si el búfer se encontraba vacío.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cbDequeue(cb: CircularBuffer): Result<Int, String> => {
+  if cbIsEmpty(cb) {
+    return Err("Búfer circular vacío");
+  }
+  let val = cb.data[cb.head];
+  cb.head = (cb.head + 1) % cb.maxCapacity;
+  cb.count = cb.count - 1;
+  return Ok(val);
+};
+
+// --- 3. Deque (Double-Ended Queue / Cola de Doble Extremo) ---
+
+/// Estructura de Cola de Doble Extremo (Deque).
+///
+/// Permite inserciones y extracciones de complejidad O(1) en ambos extremos (frente y final).
+///
+/// Campos:
+///   - `dequeItems`: Slice con los elementos contenidos (`[]Int`).
+export type Deque = {
+  dequeItems: []Int,
+};
+
+/// Crea e inicializa una nueva instancia de Deque vacía.
+///
+/// Parámetros:
+///   - Ninguno.
+///
+/// Retorno:
+///   - `Deque`: Nueva instancia con colección vacía.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn newDeque(): Deque => {
+  let list: []Int = [];
+  return { dequeItems: list };
+};
+
+/// Retorna la cantidad de elementos almacenados en el Deque.
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///
+/// Retorno:
+///   - `Int`: Longitud actual de elementos.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn dequeSize(d: Deque): Int => {
+  return d.dequeItems.length;
+};
+
+/// Verifica si el Deque se encuentra vacío.
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///
+/// Retorno:
+///   - `Bool`: `true` si no contiene elementos; `false` si tiene al menos uno.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn isDequeEmpty(d: Deque): Bool => {
+  return d.dequeItems.length == 0;
+};
+
+/// Inserta un valor entero al final del Deque (Push-Back).
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///   - `val`: Valor numérico entero (`Int`) a insertar en la cola.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras completar la inserción.
+///
+/// Complejidad:
+///   - Temporal: O(1) amortizado
+///   - Espacial: O(1)
+export fn pushBack(d: Deque, val: Int): Unit => {
+  d.dequeItems.push(val);
+  return;
+};
+
+/// Inserta un valor entero al frente del Deque (Push-Front).
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///   - `val`: Valor numérico entero (`Int`) a insertar en la cabeza.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras reposicionar los elementos.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(n)
+export fn pushFront(d: Deque, val: Int): Unit => {
+  let mut nextList: []Int = [val];
+  let mut i = 0;
+  while i < d.dequeItems.length {
+    nextList.push(d.dequeItems[i]);
+    i = i + 1;
+  }
+  d.dequeItems = nextList;
+  return;
+};
+
+/// Extrae y remueve el valor ubicado al frente del Deque (Pop-Front).
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///
+/// Retorno:
+///   - `Result<Int, String>`:
+///     - `Ok(Int)`: El valor frontal removido.
+///     - `Err(String)`: Mensaje de error si el Deque estaba vacío.
+///
+/// Complejidad:
+///   - Temporal: O(n) por rebanado
+///   - Espacial: O(1)
+export fn popFront(d: Deque): Result<Int, String> => {
+  if d.dequeItems.length == 0 {
+    return Err("Deque vacío: no se puede ejecutar popFront");
+  }
+  let val = d.dequeItems[0];
+  d.dequeItems = d.dequeItems[1:d.dequeItems.length];
+  return Ok(val);
+};
+
+/// Extrae y remueve el valor ubicado al final del Deque (Pop-Back).
+///
+/// Parámetros:
+///   - `d`: Referencia a la estructura `Deque`.
+///
+/// Retorno:
+///   - `Result<Int, String>`:
+///     - `Ok(Int)`: El valor posterior removido.
+///     - `Err(String)`: Mensaje de error si el Deque estaba vacío.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn popBack(d: Deque): Result<Int, String> => {
+  if d.dequeItems.length == 0 {
+    return Err("Deque vacío: no se puede ejecutar popBack");
+  }
+  let lastIdx = d.dequeItems.length - 1;
+  let val = d.dequeItems[lastIdx];
+  d.dequeItems = d.dequeItems[0:lastIdx];
+  return Ok(val);
+};

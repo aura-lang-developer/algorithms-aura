@@ -1,0 +1,326 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// tests/test_algorithms.aura - Suite de Pruebas Unitarias para Algoritmos Fundamentales
+// ==============================================================================
+
+import {
+  bubbleSort,
+  selectionSort,
+  insertionSort,
+  mergeSort,
+  quickSort,
+  isSorted
+} from "../src/algorithms/sorting";
+
+import {
+  linearSearch,
+  binarySearch,
+  jumpSearch,
+  ternarySearch,
+  findFirstOccurrence,
+  findLastOccurrence
+} from "../src/algorithms/searching";
+
+import {
+  Graph,
+  newGraph,
+  addVertex,
+  addEdge
+} from "../src/structures/graph";
+
+import {
+  bfs,
+  dfs,
+  dijkstra,
+  isConnected
+} from "../src/algorithms/graphs";
+
+import {
+  fibonacci,
+  knapsack01,
+  longestCommonSubsequence,
+  minCoinChange,
+  maxSubarraySum
+} from "../src/algorithms/dynamic_programming";
+
+import {
+  naivePatternSearch,
+  rabinKarpSearch,
+  isPalindrome,
+  isAnagram,
+  reverseString,
+  levenshteinDistance
+} from "../src/algorithms/strings";
+
+/// Test 1: Algoritmos de Ordenamiento (Sorting)
+/// Valida que Bubble Sort, Selection Sort, Insertion Sort, Merge Sort y Quick Sort
+/// produzcan un arreglo ordenado y preserven los casos base (arreglo vacío y un solo elemento).
+///
+/// Retorno:
+/// - `Bool`: `true` si todos los algoritmos de ordenamiento satisfacen sus aserciones.
+export fn testSorting(): Bool => {
+  let sample: []Int = [38, 27, 43, 3, 9, 82, 10];
+
+  let bSorted = bubbleSort(sample);
+  if !isSorted(bSorted) { return false; }
+  if bSorted.length != 7 || bSorted[0] != 3 || bSorted[6] != 82 { return false; }
+
+  let sSorted = selectionSort(sample);
+  if !isSorted(sSorted) { return false; }
+  if sSorted[0] != 3 || sSorted[6] != 82 { return false; }
+
+  let iSorted = insertionSort(sample);
+  if !isSorted(iSorted) { return false; }
+  if iSorted[0] != 3 || iSorted[6] != 82 { return false; }
+
+  let mSorted = mergeSort(sample);
+  if !isSorted(mSorted) { return false; }
+  if mSorted[0] != 3 || mSorted[6] != 82 { return false; }
+
+  let qSorted = quickSort(sample);
+  if !isSorted(qSorted) { return false; }
+  if qSorted[0] != 3 || qSorted[6] != 82 { return false; }
+
+  // Casos borde: arreglo vacío y un solo elemento
+  let emptyArr: []Int = [];
+  if !isSorted(quickSort(emptyArr)) { return false; }
+
+  let single: []Int = [42];
+  if !isSorted(quickSort(single)) { return false; }
+
+  return true;
+};
+
+/// Test 2: Algoritmos de Búsqueda (Searching)
+/// Valida la búsqueda lineal, binaria, por saltos y ternaria sobre arreglos ordenados,
+/// así como la localización de la primera y última ocurrencia de elementos duplicados.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las búsquedas devuelven los índices esperados.
+export fn testSearching(): Bool => {
+  let sortedList: []Int = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+
+  // Búsqueda Lineal
+  if linearSearch(sortedList, 23) != 5 { return false; }
+  if linearSearch(sortedList, 99) != -1 { return false; }
+
+  // Búsqueda Binaria
+  if binarySearch(sortedList, 2) != 0 { return false; }
+  if binarySearch(sortedList, 91) != 9 { return false; }
+  if binarySearch(sortedList, 16) != 4 { return false; }
+  if binarySearch(sortedList, 50) != -1 { return false; }
+
+  // Búsqueda por Saltos (Jump Search)
+  if jumpSearch(sortedList, 12) != 3 { return false; }
+  if jumpSearch(sortedList, 72) != 8 { return false; }
+  if jumpSearch(sortedList, 100) != -1 { return false; }
+
+  // Búsqueda Ternaria
+  if ternarySearch(sortedList, 8) != 2 { return false; }
+  if ternarySearch(sortedList, 56) != 7 { return false; }
+  if ternarySearch(sortedList, 4) != -1 { return false; }
+
+  // Rango de Ocurrencias con Duplicados
+  let dupList: []Int = [1, 2, 4, 4, 4, 4, 7, 9];
+  if findFirstOccurrence(dupList, 4) != 2 { return false; }
+  if findLastOccurrence(dupList, 4) != 5 { return false; }
+
+  return true;
+};
+
+/// Test 3: Algoritmos de Grafos (BFS, DFS, Dijkstra, Conectividad)
+/// Valida recorridos en amplitud (BFS) y profundidad (DFS), cálculo de conectividad
+/// y caminos mínimos mediante el algoritmo de Dijkstra en grafos ponderados.
+///
+/// Retorno:
+/// - `Bool`: `true` si los recorridos y distancias mínimas calculadas coinciden con lo esperado.
+export fn testGraphAlgorithms(): Bool => {
+  let g = newGraph(false);
+  let v0 = addVertex(g, "A");
+  let v1 = addVertex(g, "B");
+  let v2 = addVertex(g, "C");
+  let v3 = addVertex(g, "D");
+
+  addEdge(g, v0, v1, 1);
+  addEdge(g, v1, v2, 2);
+  addEdge(g, v2, v3, 3);
+  addEdge(g, v0, v3, 10);
+
+  // Recorrido BFS
+  let bfsOrder = bfs(g, v0);
+  if bfsOrder.length != 4 { return false; }
+  if bfsOrder[0] != v0 { return false; }
+
+  // Recorrido DFS
+  let dfsOrder = dfs(g, v0);
+  if dfsOrder.length != 4 { return false; }
+  if dfsOrder[0] != v0 { return false; }
+
+  // Conectividad
+  if !isConnected(g, v0) { return false; }
+
+  // Dijkstra: camino más corto de v0 a v3
+  // Ruta directa v0 -> v3 cuesta 10
+  // Ruta v0 -> v1 (1) -> v2 (2) -> v3 (3) cuesta 6
+  let dist = dijkstra(g, v0);
+  if dist.length != 4 { return false; }
+  if dist[v0] != 0 { return false; }
+  if dist[v1] != 1 { return false; }
+  if dist[v2] != 3 { return false; }
+  if dist[v3] != 6 { return false; }
+
+  return true;
+};
+
+/// Test 4: Programación Dinámica (DP)
+/// Valida la solución de Fibonacci tabulado, problema de la mochila 0/1,
+/// longitud de la subsecuencia común más larga (LCS), cambio de monedas y algoritmo de Kadane.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las soluciones óptimas calculadas son correctas.
+export fn testDynamicProgramming(): Bool => {
+  // Fibonacci
+  if fibonacci(0) != 0 { return false; }
+  if fibonacci(1) != 1 { return false; }
+  if fibonacci(7) != 13 { return false; }
+  if fibonacci(10) != 55 { return false; }
+
+  // Mochila 0/1 (Knapsack)
+  // Pesos: [2, 3, 4, 5], Valores: [3, 4, 5, 6], Capacidad: 5
+  // Combinación óptima: peso 2 + peso 3 = 5, valor 3 + 4 = 7
+  let weights: []Int = [2, 3, 4, 5];
+  let values: []Int = [3, 4, 5, 6];
+  let maxKnapsackVal = knapsack01(weights, values, 5);
+  if maxKnapsackVal != 7 { return false; }
+
+  // Subsecuencia Común Más Larga (LCS)
+  // "AGGTAB" y "GXTXAYB" -> LCS es "GTAB" de longitud 4
+  let lcsLen = longestCommonSubsequence("AGGTAB", "GXTXAYB");
+  if lcsLen != 4 { return false; }
+
+  // Cambio de Monedas (Coin Change)
+  let coins: []Int = [1, 2, 5];
+  // Para 11: 5 + 5 + 1 = 3 monedas
+  if minCoinChange(coins, 11) != 3 { return false; }
+  // Para 7: 5 + 2 = 2 monedas
+  if minCoinChange(coins, 7) != 2 { return false; }
+
+  // Kadane: Máximo Subarreglo
+  let subarr: []Int = [-2, 1, -3, 4, -1, 2, 1, -5, 4];
+  // Subarreglo máximo [4, -1, 2, 1] suma 6
+  if maxSubarraySum(subarr) != 6 { return false; }
+
+  return true;
+};
+
+/// Test 5: Algoritmos de Cadenas (Strings)
+/// Valida búsqueda ingenua y Rabin-Karp, verificación de palíndromos,
+/// anagramas por frecuencia de caracteres, inversión de cadenas y distancia de Levenshtein.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las operaciones de texto satisfacen sus aserciones.
+export fn testStrings(): Bool => {
+  // Búsqueda Naive
+  let naiveMatches = naivePatternSearch("aura es un lenguaje compilado en aura runtime", "aura");
+  if naiveMatches.length != 2 || naiveMatches[0] != 0 || naiveMatches[1] != 33 {
+    return false;
+  }
+
+  // Búsqueda Rabin-Karp
+  let rkMatches = rabinKarpSearch("aura es un lenguaje compilado en aura runtime", "aura");
+  if rkMatches.length != 2 || rkMatches[0] != 0 || rkMatches[1] != 33 {
+    return false;
+  }
+
+  // Palíndromo
+  if !isPalindrome("radar") { return false; }
+  if !isPalindrome("anilina") { return false; }
+  if !isPalindrome("a") { return false; }
+  if isPalindrome("aura") { return false; }
+
+  // Anagramas
+  if !isAnagram("roma", "amor") { return false; }
+  if !isAnagram("caso", "saco") { return false; }
+  if isAnagram("aura", "lang") { return false; }
+
+  // Inversión
+  if reverseString("aura") != "arua" { return false; }
+  if reverseString("12345") != "54321" { return false; }
+
+  // Distancia de Levenshtein
+  // "gato" -> "pato" = 1 (sustitución g por p)
+  if levenshteinDistance("gato", "pato") != 1 { return false; }
+  // "casa" -> "caso" = 1
+  if levenshteinDistance("casa", "caso") != 1 { return false; }
+  // "aura" -> "aura" = 0
+  if levenshteinDistance("aura", "aura") != 0 { return false; }
+
+  return true;
+};
+
+/// Ejecutor principal de la suite de pruebas unitarias para todos los algoritmos fundamentales.
+/// Ejecuta secuencialmente los 5 conjuntos de pruebas de algoritmos e imprime los resultados por consola.
+///
+/// Retorno:
+/// - `Bool`: `true` si los 5 grupos de pruebas pasaron con éxito; `false` si alguno falló.
+export fn runAlgorithmsTestSuite(): Bool => {
+  println("=================================================================");
+  println("  SUITE DE PRUEBAS: ALGORITMOS FUNDAMENTALES EN AURA LANG");
+  println("=================================================================");
+
+  let mut allPassed = true;
+
+  if testSorting() {
+    println("  [PASS] 01: Algoritmos de Ordenamiento (Bubble, Selection, Insert, Merge, Quick)");
+  } else {
+    println("  [FAIL] 01: Algoritmos de Ordenamiento");
+    allPassed = false;
+  }
+
+  if testSearching() {
+    println("  [PASS] 02: Algoritmos de Búsqueda (Linear, Binary, Jump, Ternary, Dups)");
+  } else {
+    println("  [FAIL] 02: Algoritmos de Búsqueda");
+    allPassed = false;
+  }
+
+  if testGraphAlgorithms() {
+    println("  [PASS] 03: Algoritmos de Grafos (BFS, DFS, Dijkstra, Conectividad)");
+  } else {
+    println("  [FAIL] 03: Algoritmos de Grafos");
+    allPassed = false;
+  }
+
+  if testDynamicProgramming() {
+    println("  [PASS] 04: Programación Dinámica (Fibonacci, Knapsack, LCS, Coins, Kadane)");
+  } else {
+    println("  [FAIL] 04: Programación Dinámica");
+    allPassed = false;
+  }
+
+  if testStrings() {
+    println("  [PASS] 05: Procesamiento de Cadenas (Naive, Rabin-Karp, Palindrome, Levenshtein)");
+  } else {
+    println("  [FAIL] 05: Procesamiento de Cadenas");
+    allPassed = false;
+  }
+
+  println("=================================================================");
+  if allPassed {
+    println("  ✨ ¡TODAS LAS PRUEBAS DE ALGORITMOS PASARON EXITOSAMENTE! (5/5)");
+  } else {
+    println("  ❌ ALGUNAS PRUEBAS DE ALGORITMOS FALLARON.");
+  }
+  println("=================================================================");
+
+  return allPassed;
+};
+
+/// Punto de entrada ejecutable para la suite de pruebas de algoritmos.
+///
+/// Retorno:
+/// - `Unit`: Retorna Unit al completar las aserciones.
+export fn main(): Unit => {
+  runAlgorithmsTestSuite();
+  return;
+};

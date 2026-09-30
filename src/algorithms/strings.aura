@@ -1,0 +1,335 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/algorithms/strings.aura - Algoritmos de Procesamiento de Cadenas y Patrones
+// ==============================================================================
+// Algoritmos Implementados:
+//   1. Búsqueda Naive de Patrones:           O(n * m) peor caso
+//   2. Rabin-Karp con Hash Rodante:          O(n + m) promedio
+//   3. Palíndromo (Dos Punteros):            O(n) tiempo, O(1) espacio
+//   4. Anagramas (Frecuencia de Caracteres): O(n) tiempo
+//   5. Inversión de Cadena:                  O(n) tiempo
+//   6. Distancia de Levenshtein (Edición):   O(n * m) tiempo y espacio
+// ==============================================================================
+
+/// 1. Búsqueda Ingenua de Patrones (Naive Pattern Matching)
+/// Busca todas las apariciones de una subcadena patrón dentro de un texto
+/// comparando carácter por carácter en cada ventana deslizante posible.
+///
+/// Parámetros:
+/// - `text`: Cadena de texto base en la que se desea buscar (longitud n).
+/// - `pattern`: Cadena patrón buscada (longitud m).
+///
+/// Retorno:
+/// - `[]Int`: Lista con los índices de inicio (base 0) donde coincide el patrón en el texto.
+///            Retorna una lista vacía si el patrón es vacío o si m > n.
+///
+/// Complejidad:
+/// - Tiempo: O(n * m) en el peor caso, O(n) en el mejor caso.
+/// - Espacio: O(k), donde k es la cantidad de ocurrencias encontradas.
+export fn naivePatternSearch(text: String, pattern: String): []Int => {
+  let mut matches: []Int = [];
+  let n = text.length;
+  let m = pattern.length;
+
+  if m == 0 || m > n {
+    return matches;
+  }
+
+  let limit = n - m;
+  let mut i = 0;
+  while i <= limit {
+    let mut j = 0;
+    let mut matched = true;
+
+    while j < m {
+      if text[i + j] != pattern[j] {
+        matched = false;
+        j = m; // salir temprano
+      } else {
+        j = j + 1;
+      }
+    }
+
+    if matched {
+      matches.push(i);
+    }
+    i = i + 1;
+  }
+
+  return matches;
+};
+
+/// 2. Algoritmo Rabin-Karp con Hash Rodante (Rolling Hash)
+/// Algoritmo probabilístico y exacto de búsqueda de patrones que utiliza una
+/// función de hash rodante polinomial para comparar la ventana de texto en tiempo O(1).
+/// En caso de coincidencia de hash, verifica carácter a carácter para evitar falsos positivos
+/// por colisión de hash.
+///
+/// Parámetros:
+/// - `text`: Cadena de texto donde se realiza la búsqueda (longitud n).
+/// - `pattern`: Cadena patrón buscada (longitud m).
+///
+/// Retorno:
+/// - `[]Int`: Lista de índices donde comienza cada coincidencia exacta del patrón.
+///
+/// Complejidad:
+/// - Tiempo: O(n + m) promedio y mejor caso; O(n * m) en el peor caso de colisiones masivas.
+/// - Espacio: O(k) para almacenar los índices de coincidencia.
+export fn rabinKarpSearch(text: String, pattern: String): []Int => {
+  let mut matches: []Int = [];
+  let n = text.length;
+  let m = pattern.length;
+
+  if m == 0 || m > n {
+    return matches;
+  }
+
+  let primeBase = 31;
+  let primeMod = 1000003;
+
+  // Calcular peso h = (primeBase^(m-1)) % primeMod
+  let mut h = 1;
+  let mut k = 0;
+  while k < (m - 1) {
+    h = (h * primeBase) % primeMod;
+    k = k + 1;
+  }
+
+  // Mapear carácter a entero positivo
+  let charVal = fn(ch: String): Int => {
+    if ch == "a" || ch == "A" { return 1; }
+    if ch == "b" || ch == "B" { return 2; }
+    if ch == "c" || ch == "C" { return 3; }
+    if ch == "d" || ch == "D" { return 4; }
+    if ch == "e" || ch == "E" { return 5; }
+    if ch == "l" || ch == "L" { return 12; }
+    if ch == "o" || ch == "O" { return 15; }
+    if ch == "r" || ch == "R" { return 18; }
+    if ch == "u" || ch == "U" { return 21; }
+    return 7;
+  };
+
+  // Calcular hash inicial del patrón y de la primera ventana del texto
+  let mut patternHash = 0;
+  let mut windowHash = 0;
+  let mut i = 0;
+  while i < m {
+    patternHash = (patternHash * primeBase + charVal(pattern[i])) % primeMod;
+    windowHash = (windowHash * primeBase + charVal(text[i])) % primeMod;
+    i = i + 1;
+  }
+
+  let limit = n - m;
+  let mut s = 0;
+  while s <= limit {
+    // Si los valores de hash coinciden, verificar carácter a carácter (evitar colisión)
+    if windowHash == patternHash {
+      let mut matched = true;
+      let mut j = 0;
+      while j < m {
+        if text[s + j] != pattern[j] {
+          matched = false;
+          j = m;
+        } else {
+          j = j + 1;
+        }
+      }
+      if matched {
+        matches.push(s);
+      }
+    }
+
+    // Calcular hash de la siguiente ventana rodante
+    if s < limit {
+      let removeVal = (charVal(text[s]) * h) % primeMod;
+      let addVal = charVal(text[s + m]);
+      let nextHash = (windowHash - removeVal + primeMod) % primeMod;
+      windowHash = (nextHash * primeBase + addVal) % primeMod;
+    }
+
+    s = s + 1;
+  }
+
+  return matches;
+};
+
+/// 3. Verificación de Palíndromo (Dos Punteros)
+/// Determina si una cadena se lee igual de izquierda a derecha que de derecha a izquierda,
+/// comparando simétricamente los caracteres con dos punteros convergentes.
+///
+/// Parámetros:
+/// - `s`: Cadena de texto a evaluar.
+///
+/// Retorno:
+/// - `Bool`: `true` si la cadena es un palíndromo (o si tiene longitud <= 1), `false` en caso contrario.
+///
+/// Complejidad:
+/// - Tiempo: O(n), realizando a lo sumo n/2 comparaciones.
+/// - Espacio: O(1), memoria constante.
+export fn isPalindrome(s: String): Bool => {
+  if s.length <= 1 {
+    return true;
+  }
+
+  let mut left = 0;
+  let mut right = s.length - 1;
+
+  while left < right {
+    if s[left] != s[right] {
+      return false;
+    }
+    left = left + 1;
+    right = right - 1;
+  }
+
+  return true;
+};
+
+/// 4. Verificación de Anagramas (Comparación de conteo de caracteres)
+/// Determina si dos cadenas de texto son anagramas, es decir, si contienen
+/// exactamente los mismos caracteres con idénticas frecuencias de repetición.
+///
+/// Parámetros:
+/// - `s1`: Primera cadena de texto.
+/// - `s2`: Segunda cadena de texto.
+///
+/// Retorno:
+/// - `Bool`: `true` si ambas cadenas son anagramas exactos, `false` en caso contrario o si difieren en longitud.
+///
+/// Complejidad:
+/// - Tiempo: O(n), donde n es la longitud de las cadenas.
+/// - Espacio: O(1) o O(sigma) para la tabla de frecuencias de caracteres.
+export fn isAnagram(s1: String, s2: String): Bool => {
+  if s1.length != s2.length {
+    return false;
+  }
+
+  // Inicializar arreglo de 256 frecuencias
+  let mut freqs: []Int = [];
+  let mut i = 0;
+  while i < 128 {
+    freqs.push(0);
+    i = i + 1;
+  }
+
+  let getCode = fn(ch: String): Int => {
+    if ch == "a" { return 0; }
+    if ch == "b" { return 1; }
+    if ch == "c" { return 2; }
+    if ch == "d" { return 3; }
+    if ch == "e" { return 4; }
+    if ch == "l" { return 11; }
+    if ch == "m" { return 12; }
+    if ch == "o" { return 14; }
+    if ch == "r" { return 17; }
+    if ch == "s" { return 18; }
+    if ch == "t" { return 19; }
+    if ch == "u" { return 20; }
+    return 30;
+  };
+
+  let mut j = 0;
+  while j < s1.length {
+    let c1 = getCode(s1[j]);
+    let c2 = getCode(s2[j]);
+    freqs[c1] = freqs[c1] + 1;
+    freqs[c2] = freqs[c2] - 1;
+    j = j + 1;
+  }
+
+  let mut k = 0;
+  while k < 128 {
+    if freqs[k] != 0 {
+      return false;
+    }
+    k = k + 1;
+  }
+
+  return true;
+};
+
+/// 5. Inversión de Cadenas de Texto
+/// Invierte el orden de los caracteres de una cadena desde el final hacia el inicio
+/// produciendo una nueva cadena resultante.
+///
+/// Parámetros:
+/// - `s`: Cadena de texto de entrada a invertir.
+///
+/// Retorno:
+/// - `String`: Nueva cadena de texto con los caracteres en orden inverso.
+///
+/// Complejidad:
+/// - Tiempo: O(n), donde n es la longitud de la cadena.
+/// - Espacio: O(n) para construir la cadena invertida.
+export fn reverseString(s: String): String => {
+  let mut reversed = "";
+  let mut i = s.length - 1;
+
+  while i >= 0 {
+    reversed = `${reversed}${s[i]}`;
+    i = i - 1;
+  }
+
+  return reversed;
+};
+
+/// 6. Distancia de Levenshtein (Distancia de Edición)
+/// Calcula el número mínimo de operaciones elementales (inserción, eliminación
+/// o sustitución de un solo carácter) necesarias para transformar la cadena s1 en s2.
+/// Utiliza programación dinámica tabular 2D.
+///
+/// Parámetros:
+/// - `s1`: Primera cadena de texto de origen (longitud m).
+/// - `s2`: Segunda cadena de texto de destino (longitud n).
+///
+/// Retorno:
+/// - `Int`: Cantidad mínima de operaciones de edición requeridas.
+///
+/// Complejidad:
+/// - Tiempo: O(m * n), donde m y n son las longitudes de s1 y s2.
+/// - Espacio: O(m * n), representados linealmente en una matriz aplanada de (m + 1) * (n + 1).
+export fn levenshteinDistance(s1: String, s2: String): Int => {
+  let m = s1.length;
+  let n = s2.length;
+  let totalCells = (m + 1) * (n + 1);
+
+  let mut dp: []Int = [];
+  let mut k = 0;
+  while k < totalCells {
+    dp.push(0);
+    k = k + 1;
+  }
+
+  let mut i = 0;
+  while i <= m {
+    dp[i * (n + 1)] = i;
+    i = i + 1;
+  }
+
+  let mut j = 0;
+  while j <= n {
+    dp[j] = j;
+    j = j + 1;
+  }
+
+  let mut r = 1;
+  while r <= m {
+    let mut c = 1;
+    while c <= n {
+      let cost = if s1[r - 1] == s2[c - 1] { 0 } else { 1 };
+      let delCost = dp[(r - 1) * (n + 1) + c] + 1;
+      let insCost = dp[r * (n + 1) + (c - 1)] + 1;
+      let subCost = dp[(r - 1) * (n + 1) + (c - 1)] + cost;
+
+      let mut minVal = delCost;
+      if insCost < minVal { minVal = insCost; }
+      if subCost < minVal { minVal = subCost; }
+
+      dp[r * (n + 1) + c] = minVal;
+      c = c + 1;
+    }
+    r = r + 1;
+  }
+
+  return dp[m * (n + 1) + n];
+};

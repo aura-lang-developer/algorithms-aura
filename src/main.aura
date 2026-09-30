@@ -1,0 +1,477 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/main.aura - Demostración Interactiva y Punto de Entrada Principal (CLI)
+// ==============================================================================
+
+import {
+  ArrayStack,
+  newArrayStack,
+  push,
+  pop,
+  peek,
+  stackSize,
+  isBalancedParentheses
+} from "./structures/stack";
+
+import {
+  Queue,
+  newQueue,
+  enqueue,
+  dequeue,
+  queuePeek,
+  queueSize,
+  CircularBuffer,
+  newCircularBuffer,
+  cbEnqueue,
+  cbDequeue,
+  cbSize,
+  Deque,
+  newDeque,
+  pushFront,
+  pushBack,
+  popFront,
+  popBack
+} from "./structures/queue";
+
+import {
+  SinglyLinkedList,
+  newSinglyLinkedList,
+  slistPrepend,
+  slistAppend,
+  listToArray,
+  slistContains,
+  slistDelete,
+  slistReverse,
+  slistSize
+} from "./structures/linked_list";
+
+import {
+  BST,
+  emptyBST,
+  insertBST,
+  searchBST,
+  findMinBST,
+  findMaxBST,
+  treeHeight,
+  treeNodeCount,
+  inOrderTraversal
+} from "./structures/binary_search_tree";
+
+import {
+  MinHeap,
+  newMinHeap,
+  heapPush,
+  heapPop,
+  heapPeek,
+  heapSort
+} from "./structures/heap";
+
+import {
+  HashTable,
+  newHashTable,
+  put,
+  get,
+  containsKey,
+  getAllKeys
+} from "./structures/hash_table";
+
+import {
+  Trie,
+  newTrie,
+  insertWord,
+  searchWord,
+  startsWith
+} from "./structures/trie";
+
+import {
+  Graph,
+  newGraph,
+  addVertex,
+  addEdge,
+  vertexCount,
+  getNeighbors
+} from "./structures/graph";
+
+import {
+  bubbleSort,
+  selectionSort,
+  insertionSort,
+  mergeSort,
+  quickSort
+} from "./algorithms/sorting";
+
+import {
+  linearSearch,
+  binarySearch,
+  jumpSearch,
+  ternarySearch
+} from "./algorithms/searching";
+
+import {
+  bfs,
+  dfs,
+  dijkstra,
+  isConnected
+} from "./algorithms/graphs";
+
+import {
+  fibonacci,
+  knapsack01,
+  longestCommonSubsequence,
+  minCoinChange,
+  maxSubarraySum
+} from "./algorithms/dynamic_programming";
+
+import {
+  naivePatternSearch,
+  rabinKarpSearch,
+  isPalindrome,
+  isAnagram,
+  reverseString,
+  levenshteinDistance
+} from "./algorithms/strings";
+
+/// Convierte un slice de enteros a una representación textual legible en formato `[x, y, z]`.
+///
+/// Parámetros:
+/// - `arr`: Arreglo o slice de números enteros a formatear.
+///
+/// Retorno:
+/// - `String`: Cadena de texto formateada con los elementos separados por comas y delimitados por corchetes.
+fn arrayToString(arr: []Int): String => {
+  let mut s = "[";
+  let mut i = 0;
+  while i < arr.length {
+    if i > 0 {
+      s = `${s}, `;
+    }
+    s = `${s}${arr[i]}`;
+    i = i + 1;
+  }
+  return `${s}]`;
+};
+
+/// 1. Demostración de Estructuras Lineales
+/// Ejecuta la demostración interactiva de las estructuras de datos lineales:
+/// - Pila basada en arreglos (LIFO, validación de paréntesis balanceados).
+/// - Cola estándar (FIFO).
+/// - Búfer circular de capacidad acotada y reciclaje de memoria.
+/// - Lista simplemente enlazada (inserción al frente/cola, inversión in-situ y borrado).
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; imprime los resultados por consola.
+fn demoLinearStructures(): Unit => {
+  println("-----------------------------------------------------------------");
+  println(" 1. ESTRUCTURAS LINEALES: Pila, Cola, Deque y Lista Enlazada");
+  println("-----------------------------------------------------------------");
+
+  // A. Pila (Stack LIFO)
+  let stack = newArrayStack();
+  push(stack, 10);
+  push(stack, 20);
+  push(stack, 30);
+  println(`  [Stack] Elementos apilados: 10, 20, 30 | Tamaño actual: ${stackSize(stack)}`);
+  let topRes = pop(stack);
+  match topRes {
+    Ok(v) => println(`  [Stack] Pop ejecutado -> Elemento retirado: ${v}`),
+    Err(e) => println(`  [Stack] Error: ${e}`),
+  }
+  println(`  [Stack] Validación de paréntesis '{[()]}': ${isBalancedParentheses("{[()]}")}`);
+  println(`  [Stack] Validación de paréntesis '([)]':   ${isBalancedParentheses("([)]")}`);
+
+  // B. Cola (Queue FIFO)
+  let queue = newQueue();
+  enqueue(queue, 100);
+  enqueue(queue, 200);
+  enqueue(queue, 300);
+  println(`\n  [Queue] Elementos encolados: 100, 200, 300 | Tamaño: ${queueSize(queue)}`);
+  let frontRes = dequeue(queue);
+  match frontRes {
+    Ok(v) => println(`  [Queue] Dequeue ejecutado -> Primero atendido: ${v}`),
+    Err(e) => println(`  [Queue] Error: ${e}`),
+  }
+
+  // C. Búfer Circular
+  let cb = newCircularBuffer(3);
+  cbEnqueue(cb, 1);
+  cbEnqueue(cb, 2);
+  cbEnqueue(cb, 3);
+  let overfull = cbEnqueue(cb, 4);
+  println(`\n  [CircularBuffer] Capacidad 3 llena. Intento de insertar 4º: ${if overfull { "Aceptado" } else { "Rechazado (Búfer Lleno)" }}`);
+  let cbFirst = cbDequeue(cb);
+  match cbFirst {
+    Ok(v) => println(`  [CircularBuffer] Extraído elemento más antiguo: ${v}`),
+    Err(e) => println(`  [CircularBuffer] Error: ${e}`),
+  }
+
+  // D. Lista Simplemente Enlazada
+  let list = newSinglyLinkedList();
+  slistAppend(list, 15);
+  slistAppend(list, 25);
+  slistPrepend(list, 5);
+  slistAppend(list, 35);
+  println(`\n  [LinkedList] Lista original:   ${arrayToString(listToArray(list))}`);
+  slistReverse(list);
+  println(`  [LinkedList] Lista invertida:  ${arrayToString(listToArray(list))}`);
+  slistDelete(list, 25);
+  println(`  [LinkedList] Tras borrar 25:   ${arrayToString(listToArray(list))}`);
+  return;
+};
+
+/// 2. Demostración de Estructuras Jerárquicas y Asociativas
+/// Ejecuta la demostración interactiva de estructuras jerárquicas y asociativas:
+/// - Árbol Binario de Búsqueda (BST) recursivo con recorrido in-order, cálculo de altura y búsqueda.
+/// - Montículo Binario Mínimo (Min-Heap) con operaciones de tamizado (sift-up/sift-down) y HeapSort.
+/// - Tabla Hash con direccionamiento abierto / encadenamiento separado (clave-valor).
+/// - Árbol de Prefijos (Trie) para indexación léxica y autocompletado.
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; imprime los resultados por consola.
+fn demoHierarchicalStructures(): Unit => {
+  println("\n-----------------------------------------------------------------");
+  println(" 2. ESTRUCTURAS JERÁRQUICAS Y ASOCIATIVAS: BST, Heap, Hash, Trie");
+  println("-----------------------------------------------------------------");
+
+  // A. Árbol Binario de Búsqueda (BST)
+  let mut tree = emptyBST();
+  tree = insertBST(tree, 50);
+  tree = insertBST(tree, 30);
+  tree = insertBST(tree, 70);
+  tree = insertBST(tree, 20);
+  tree = insertBST(tree, 40);
+  tree = insertBST(tree, 60);
+  tree = insertBST(tree, 80);
+
+  let mut inOrderArr: []Int = [];
+  inOrderTraversal(tree, inOrderArr);
+  println(`  [BST] In-Order Traversal (Ordenado): ${arrayToString(inOrderArr)}`);
+  println(`  [BST] Altura del árbol: ${treeHeight(tree)} | Cantidad de nodos: ${treeNodeCount(tree)}`);
+  println(`  [BST] Búsqueda de valor 40: ${searchBST(tree, 40)} | Búsqueda de 99: ${searchBST(tree, 99)}`);
+
+  // B. Montículo Binario (Min-Heap)
+  let heap = newMinHeap();
+  heapPush(heap, 45);
+  heapPush(heap, 20);
+  heapPush(heap, 14);
+  heapPush(heap, 12);
+  heapPush(heap, 31);
+  let minRoot = heapPeek(heap);
+  match minRoot {
+    Ok(v) => println(`\n  [MinHeap] Raíz mínima O(1): ${v}`),
+    Err(e) => println(`  [MinHeap] Error: ${e}`),
+  }
+  let unsorted: []Int = [64, 34, 25, 12, 22, 11, 90];
+  println(`  [HeapSort] Arreglo sin ordenar: ${arrayToString(unsorted)}`);
+  println(`  [HeapSort] Arreglo ordenado:    ${arrayToString(heapSort(unsorted))}`);
+
+  // C. Tabla Hash con Encadenamiento Separado
+  let ht = newHashTable(8);
+  put(ht, "lenguaje", "Aura Lang");
+  put(ht, "paradigma", "Multiparadigma (Golang/Rust Model)");
+  put(ht, "compilador", "aurac (Nativo Standalone)");
+  println("\n  [HashTable] Inserciones clave-valor completadas:");
+  let valRes = get(ht, "lenguaje");
+  match valRes {
+    Ok(v) => println(`    ➜ get("lenguaje"): "${v}"`),
+    Err(e) => println(`    ➜ Error: ${e}`),
+  }
+  let compRes = get(ht, "compilador");
+  match compRes {
+    Ok(v) => println(`    ➜ get("compilador"): "${v}"`),
+    Err(e) => println(`    ➜ Error: ${e}`),
+  }
+
+  // D. Árbol de Prefijos (Trie)
+  let tr = newTrie();
+  insertWord(tr, "algoritmo");
+  insertWord(tr, "arbol");
+  insertWord(tr, "aura");
+  insertWord(tr, "aurac");
+  println("\n  [Trie] Palabras indexadas: 'algoritmo', 'arbol', 'aura', 'aurac'");
+  println(`    ➜ searchWord("aura"):     ${searchWord(tr, "aura")}`);
+  println(`    ➜ searchWord("aur"):      ${searchWord(tr, "aur")} (solo prefijo)`);
+  println(`    ➜ startsWith("al"):       ${startsWith(tr, "al")}`);
+  println(`    ➜ startsWith("xyz"):      ${startsWith(tr, "xyz")}`);
+  return;
+};
+
+/// 3. Demostración de Algoritmos de Ordenamiento y Búsqueda
+/// Demuestra la ejecución de algoritmos clásicos de ordenamiento y búsqueda:
+/// - Ordenamientos: Bubble Sort, Selection Sort, Insertion Sort, Merge Sort y Quick Sort.
+/// - Búsquedas: Búsqueda Lineal, Búsqueda Binaria, Búsqueda por Saltos (Jump Search) y Búsqueda Ternaria.
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; imprime los arreglos ordenados y los índices encontrados.
+fn demoAlgorithms(): Unit => {
+  println("\n-----------------------------------------------------------------");
+  println(" 3. ALGORITMOS: Ordenamiento y Búsqueda");
+  println("-----------------------------------------------------------------");
+
+  let data: []Int = [64, 25, 12, 22, 11, 90, 88, 3];
+  println(`  Arreglo de prueba: ${arrayToString(data)}`);
+  println(`  ➜ Bubble Sort:    ${arrayToString(bubbleSort(data))}`);
+  println(`  ➜ Selection Sort: ${arrayToString(selectionSort(data))}`);
+  println(`  ➜ Insertion Sort: ${arrayToString(insertionSort(data))}`);
+  println(`  ➜ Merge Sort:     ${arrayToString(mergeSort(data))}`);
+  println(`  ➜ Quick Sort:     ${arrayToString(quickSort(data))}`);
+
+  let sortedData: []Int = [3, 11, 12, 22, 25, 64, 88, 90];
+  println(`\n  Búsquedas sobre: ${arrayToString(sortedData)} (Buscando elemento 25):`);
+  println(`  ➜ Linear Search:    Índice ${linearSearch(sortedData, 25)}`);
+  println(`  ➜ Binary Search:    Índice ${binarySearch(sortedData, 25)}`);
+  println(`  ➜ Jump Search:      Índice ${jumpSearch(sortedData, 25)}`);
+  println(`  ➜ Ternary Search:   Índice ${ternarySearch(sortedData, 25)}`);
+  return;
+};
+
+/// 4. Demostración de Grafos y Dijkstra
+/// Demuestra el modelado de grafos ponderados y la ejecución de algoritmos sobre redes:
+/// - Construcción de topología de grafo no dirigido con etiquetas y pesos de aristas.
+/// - Recorrido en anchura (BFS) y recorrido en profundidad (DFS).
+/// - Algoritmo de Dijkstra para cálculo de caminos mínimos desde un vértice origen.
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; imprime los recorridos y las distancias mínimas calculadas.
+fn demoGraphDijkstra(): Unit => {
+  println("\n-----------------------------------------------------------------");
+  println(" 4. GRAFOS Y RUTAS MÍNIMAS: BFS, DFS y Dijkstra");
+  println("-----------------------------------------------------------------");
+
+  let g = newGraph(false);
+  let santiago = addVertex(g, "Santiago");
+  let valparaiso = addVertex(g, "Valparaíso");
+  let rancagua = addVertex(g, "Rancagua");
+  let concepcion = addVertex(g, "Concepción");
+
+  // Conectar con distancias aproximadas en decenas de km
+  addEdge(g, santiago, valparaiso, 12);
+  addEdge(g, santiago, rancagua, 9);
+  addEdge(g, rancagua, concepcion, 42);
+  addEdge(g, santiago, concepcion, 50);
+
+  println(`  Vértices en el mapa vial: ${vertexCount(g)}`);
+  println(`  Vecinos de Santiago: ${arrayToString(getNeighbors(g, santiago))}`);
+  println(`  Recorrido en Anchura (BFS):     ${arrayToString(bfs(g, santiago))}`);
+  println(`  Recorrido en Profundidad (DFS): ${arrayToString(dfs(g, santiago))}`);
+
+  let distancias = dijkstra(g, santiago);
+  println(`  Caminos mínimos de Dijkstra desde Santiago:`);
+  println(`    ➜ A Santiago:    ${distancias[santiago]} km`);
+  println(`    ➜ A Valparaíso:  ${distancias[valparaiso]} km`);
+  println(`    ➜ A Rancagua:    ${distancias[rancagua]} km`);
+  println(`    ➜ A Concepción:  ${distancias[concepcion]} km`);
+  return;
+};
+
+/// 5. Demostración de Programación Dinámica y Cadenas
+/// Demuestra algoritmos avanzados de optimización por programación dinámica y procesamiento de texto:
+/// - Sucesión de Fibonacci tabulada en O(1) espacio.
+/// - Problema de la Mochila 0/1 (Knapsack).
+/// - Longest Common Subsequence (LCS).
+/// - Cambio mínimo de monedas (Coin Change).
+/// - Algoritmo de Kadane para suma máxima de subarreglo contiguo.
+/// - Búsqueda ingenua y algoritmo Rabin-Karp con hash rodante.
+/// - Detección de palíndromos y anagramas, inversión de cadenas y distancia de Levenshtein.
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; imprime los resultados y métricas por consola.
+fn demoDPAndStrings(): Unit => {
+  println("\n-----------------------------------------------------------------");
+  println(" 5. PROGRAMACIÓN DINÁMICA Y ALGORITMOS DE CADENAS");
+  println("-----------------------------------------------------------------");
+
+  println(`  [Fibonacci Tabulado] F(10) = ${fibonacci(10)} | F(15) = ${fibonacci(15)}`);
+
+  // Mochila 0/1
+  let pesos: []Int = [2, 3, 4, 5];
+  let valores: []Int = [3, 4, 5, 6];
+  let maxMochila = knapsack01(pesos, valores, 5);
+  println(`  [Mochila 0/1] Capacidad 5 | Valor óptimo obtenido: $${maxMochila}`);
+
+  // LCS
+  let lcsRes = longestCommonSubsequence("AGGTAB", "GXTXAYB");
+  println(`  [LCS] Longitud de subsecuencia común entre 'AGGTAB' y 'GXTXAYB': ${lcsRes}`);
+
+  // Cambio de Monedas
+  let monedas: []Int = [1, 2, 5];
+  println(`  [Coin Change] Mínimo de monedas para $11 con [1, 2, 5]: ${minCoinChange(monedas, 11)} monedas`);
+
+  // Algoritmo de Kadane
+  let serie: []Int = [-2, 1, -3, 4, -1, 2, 1, -5, 4];
+  println(`  [Kadane] Suma máxima de subarreglo contiguo: ${maxSubarraySum(serie)}`);
+
+  // Cadenas
+  let texto = "aura lang es un lenguaje compilado. aura es veloz.";
+  let naiveMatches = naivePatternSearch(texto, "aura");
+  let rkMatches = rabinKarpSearch(texto, "aura");
+  println(`\n  [String Matching] Patrón 'aura' encontrado en índices:`);
+  println(`    ➜ Naive Search:      ${arrayToString(naiveMatches)}`);
+  println(`    ➜ Rabin-Karp Search: ${arrayToString(rkMatches)}`);
+  println(`  [Palíndromo] 'reconocer' es palíndromo: ${isPalindrome("reconocer")}`);
+  println(`  [Anagramas]  'roma' y 'amor' son anagramas: ${isAnagram("roma", "amor")}`);
+  println(`  [Reverso]    Reverso de 'AuraLang': "${reverseString("AuraLang")}"`);
+  println(`  [Levenshtein] Distancia de edición entre 'algoritmo' y 'logaritmo': ${levenshteinDistance("algoritmo", "logaritmo")}`);
+  return;
+};
+
+/// 6. Tabla Resumen de Complejidades Teóricas
+/// Imprime en la consola la tabla comparativa integral de complejidades algorítmicas (notación Big-O)
+/// para todas las estructuras y algoritmos implementados en el proyecto:
+/// - Complejidad temporal en mejor caso, caso promedio y peor caso.
+/// - Complejidades de acceso, inserción y borrado para estructuras de datos.
+///
+/// Retorno:
+/// - `Unit`: No retorna ningún valor; envía la tabla formateada a la salida estándar.
+fn printComplexitySummary(): Unit => {
+  println("\n=================================================================");
+  println("  TABLA RESUMEN DE COMPLEJIDADES (BIG-O NOTATION)");
+  println("=================================================================");
+  println("  Estructura / Algoritmo      Acceso/Búsq.  Inserción    Borrado");
+  println("  -------------------------------------------------------------");
+  println("  Pila (ArrayStack)           O(1) [peek]   O(1)         O(1) [pop]");
+  println("  Cola (FIFO Queue)           O(1) [peek]   O(1)         O(1) [deq]");
+  println("  Búfer Circular              O(1)          O(1)         O(1)");
+  println("  Lista Simplemente Enlazada  O(n)          O(1)         O(n)");
+  println("  Árbol BST (Promedio)        O(log n)      O(log n)     O(log n)");
+  println("  Min-Heap / PriorityQueue    O(1) [peek]   O(log n)     O(log n)");
+  println("  Tabla Hash (Separate Chain) O(1) prom     O(1) prom    O(1) prom");
+  println("  Trie (Árbol de Prefijos)    O(L)          O(L)         O(L)");
+  println("  -------------------------------------------------------------");
+  println("  Algoritmo                   Mejor Caso    Promedio     Peor Caso");
+  println("  -------------------------------------------------------------");
+  println("  Bubble Sort                 O(n)          O(n^2)       O(n^2)");
+  println("  Selection Sort              O(n^2)        O(n^2)       O(n^2)");
+  println("  Insertion Sort              O(n)          O(n^2)       O(n^2)");
+  println("  Merge Sort                  O(n log n)    O(n log n)   O(n log n)");
+  println("  Quick Sort                  O(n log n)    O(n log n)   O(n^2)");
+  println("  Binary Search               O(1)          O(log n)     O(log n)");
+  println("  Dijkstra (Caminos Mínimos)  O(V^2)        O(V^2)       O(V^2)");
+  println("  Knapsack 0/1 (Prog. Din.)   O(n * W)      O(n * W)     O(n * W)");
+  println("=================================================================");
+  return;
+};
+
+/// Punto de entrada principal de la aplicación CLI de Algoritmos y Estructuras en Aura Lang.
+/// Orquesta y ejecuta de forma secuencial todas las demostraciones de estructuras lineales,
+/// estructuras jerárquicas, algoritmos de ordenamiento, búsqueda, grafos, programación dinámica
+/// y procesamiento de cadenas, finalizando con la tabla resumen de complejidades.
+///
+/// Retorno:
+/// - `Unit`: Retorna Unit al finalizar la ejecución exitosa de la suite completa.
+export fn main(): Unit => {
+  println("=================================================================");
+  println("    ⚡ ALGORITMOS Y ESTRUCTURAS DE DATOS EN AURA LANG ⚡        ");
+  println("    Native Binary Engine • Golang Runtime Model • Tipos ADT      ");
+  println("=================================================================");
+  println("");
+
+  demoLinearStructures();
+  demoHierarchicalStructures();
+  demoAlgorithms();
+  demoGraphDijkstra();
+  demoDPAndStrings();
+  printComplexitySummary();
+
+  println("\n✨ Demostración completa ejecutada exitosamente en Aura Lang.");
+  return;
+};

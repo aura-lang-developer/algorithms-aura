@@ -1,0 +1,374 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/structures/linked_list.aura - Lista Simplemente Enlazada y Lista ADT Funcional
+// ==============================================================================
+
+// --- 1. Lista Enlazada basada en Memoria Contigua (Pool de Nodos) ---
+
+/// Representa un nodo individual en la lista enlazada contigua.
+///
+/// Campos:
+///   - `value`: Carga útil del nodo (`Int`).
+///   - `next`: Índice del siguiente nodo en el arreglo `nodes` (-1 indica terminación / NULL).
+export type ListNode = {
+  value: Int,
+  next: Int,
+};
+
+/// Estructura de Lista Simplemente Enlazada con pool contiguo de nodos.
+///
+/// Ofrece ventajas de caché y memoria plana mientras preserva punteros lógicos LIFO/FIFO.
+///
+/// Campos:
+///   - `nodes`: Slice contenedor de todos los nodos asignados (`[]ListNode`).
+///   - `head`: Índice al nodo cabeza inicial (-1 si está vacía).
+///   - `tail`: Índice al último nodo de la lista (-1 si está vacía).
+///   - `count`: Cantidad total de nodos activos en la lista.
+export type SinglyLinkedList = {
+  nodes: []ListNode,
+  head: Int,
+  tail: Int,
+  count: Int,
+};
+
+/// Crea e inicializa una nueva lista simplemente enlazada vacía.
+///
+/// Parámetros:
+///   - Ninguno.
+///
+/// Retorno:
+///   - `SinglyLinkedList`: Lista vacía con punteros `head` y `tail` en -1 y `count` en 0.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn newSinglyLinkedList(): SinglyLinkedList => {
+  let emptyNodes: []ListNode = [];
+  return {
+    nodes: emptyNodes,
+    head: -1,
+    tail: -1,
+    count: 0,
+  };
+};
+
+/// Retorna la cantidad de elementos activos en la lista enlazada.
+///
+/// Parámetros:
+///   - `list`: Referencia a la estructura `SinglyLinkedList`.
+///
+/// Retorno:
+///   - `Int`: Número de nodos activos.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn slistSize(list: SinglyLinkedList): Int => {
+  return list.count;
+};
+
+/// Determina si la lista enlazada no contiene nodos activos.
+///
+/// Parámetros:
+///   - `list`: Referencia a la estructura `SinglyLinkedList`.
+///
+/// Retorno:
+///   - `Bool`: `true` si `count` es 0; `false` en caso contrario.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn slistIsEmpty(list: SinglyLinkedList): Bool => {
+  return list.count == 0;
+};
+
+/// Inserta un nuevo elemento al inicio de la lista (Prepend).
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList`.
+///   - `val`: Valor numérico entero (`Int`) que será la nueva cabeza.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras actualizar la cabeza.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn slistPrepend(list: SinglyLinkedList, val: Int): Unit => {
+  let newNodeIdx = list.nodes.length;
+  let newNode: ListNode = {
+    value: val,
+    next: list.head,
+  };
+  list.nodes.push(newNode);
+
+  if list.head == -1 {
+    list.tail = newNodeIdx;
+  }
+  list.head = newNodeIdx;
+  list.count = list.count + 1;
+  return;
+};
+
+/// Inserta un nuevo elemento al final de la lista (Append).
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList`.
+///   - `val`: Valor numérico entero (`Int`) que será la nueva cola.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras enlazar el nodo final.
+///
+/// Complejidad:
+///   - Temporal: O(1) gracias al puntero `tail`
+///   - Espacial: O(1)
+export fn slistAppend(list: SinglyLinkedList, val: Int): Unit => {
+  let newNodeIdx = list.nodes.length;
+  let newNode: ListNode = {
+    value: val,
+    next: -1,
+  };
+  list.nodes.push(newNode);
+
+  if list.head == -1 {
+    list.head = newNodeIdx;
+    list.tail = newNodeIdx;
+  } else {
+    let oldTail = list.nodes[list.tail];
+    list.nodes[list.tail] = {
+      value: oldTail.value,
+      next: newNodeIdx,
+    };
+    list.tail = newNodeIdx;
+  }
+
+  list.count = list.count + 1;
+  return;
+};
+
+/// Convierte y vuelca los elementos de la lista enlazada a un slice secuencial (`[]Int`).
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList` a recorrer.
+///
+/// Retorno:
+///   - `[]Int`: Arreglo con los elementos en orden desde la cabeza hasta la cola.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(n)
+export fn listToArray(list: SinglyLinkedList): []Int => {
+  let mut result: []Int = [];
+  let mut curr = list.head;
+
+  while curr != -1 {
+    let node = list.nodes[curr];
+    result.push(node.value);
+    curr = node.next;
+  }
+
+  return result;
+};
+
+/// Busca si un valor entero existe dentro de la lista enlazada.
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList` a inspeccionar.
+///   - `val`: Valor entero buscado (`Int`).
+///
+/// Retorno:
+///   - `Bool`: `true` si el elemento se encuentra en algún nodo; `false` si no existe.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(1)
+export fn slistContains(list: SinglyLinkedList, val: Int): Bool => {
+  let mut curr = list.head;
+
+  while curr != -1 {
+    let node = list.nodes[curr];
+    if node.value == val {
+      return true;
+    }
+    curr = node.next;
+  }
+
+  return false;
+};
+
+/// Elimina la primera ocurrencia de un valor de la lista enlazada.
+///
+/// Reenlaza los punteros para omitir el nodo coincidente y decrementa `count`.
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList`.
+///   - `val`: Valor entero (`Int`) que se desea suprimir.
+///
+/// Retorno:
+///   - `Bool`: `true` si el elemento fue encontrado y removido; `false` si no existía.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(1)
+export fn slistDelete(list: SinglyLinkedList, val: Int): Bool => {
+  if list.head == -1 {
+    return false;
+  }
+
+  let mut curr = list.head;
+  let mut prev = -1;
+
+  while curr != -1 {
+    let node = list.nodes[curr];
+    if node.value == val {
+      if prev == -1 {
+        list.head = node.next;
+        if list.head == -1 {
+          list.tail = -1;
+        }
+      } else {
+        let prevNode = list.nodes[prev];
+        list.nodes[prev] = {
+          value: prevNode.value,
+          next: node.next,
+        };
+        if node.next == -1 {
+          list.tail = prev;
+        }
+      }
+      list.count = list.count - 1;
+      return true;
+    }
+    prev = curr;
+    curr = node.next;
+  }
+
+  return false;
+};
+
+/// Invierte el orden de todos los enlaces de la lista in-place.
+///
+/// Transforma el nodo final en la nueva cabeza y viceversa.
+///
+/// Parámetros:
+///   - `list`: Referencia a la lista `SinglyLinkedList` a invertir.
+///
+/// Retorno:
+///   - `Unit`: Retorna `()` tras reorientar todos los punteros `next`.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(1)
+export fn slistReverse(list: SinglyLinkedList): Unit => {
+  if list.count <= 1 {
+    return;
+  }
+
+  let mut prev = -1;
+  let mut curr = list.head;
+  list.tail = list.head;
+
+  while curr != -1 {
+    let nextNodeIdx = list.nodes[curr].next;
+    let nodeVal = list.nodes[curr].value;
+
+    list.nodes[curr] = {
+      value: nodeVal,
+      next: prev,
+    };
+
+    prev = curr;
+    curr = nextNodeIdx;
+  }
+
+  list.head = prev;
+  return;
+};
+
+// --- 2. Lista Enlazada Inmutable Funcional (ADT Recursivo) ---
+
+/// Tipo Suma Algebraico (ADT) que representa una lista recursiva inmutable.
+///
+/// Variantes:
+///   - `Nil`: Caso base, representa una lista vacía.
+///   - `Cons { head, tail }`: Nodo compuesto por un valor frontal (`head`) y el resto de la lista (`tail`).
+export type IntList =
+  | Nil
+  | Cons { head: Int, tail: IntList };
+
+/// Constructor semántico de listas funcionales (operación clásica `cons`).
+///
+/// Parámetros:
+///   - `head`: Elemento entero que encabezará la nueva lista.
+///   - `tail`: Sublista recursiva `IntList` subsiguiente.
+///
+/// Retorno:
+///   - `IntList`: Nueva lista inmutable con `head` al frente.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn cons(head: Int, tail: IntList): IntList => {
+  return IntList.Cons({ head: head, tail: tail });
+};
+
+/// Calcula recursivamente la longitud total de una lista funcional.
+///
+/// Parámetros:
+///   - `l`: Instancia de `IntList` a cuantificar.
+///
+/// Retorno:
+///   - `Int`: Cardinalidad de nodos en la lista.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(n) en pila de llamadas recursivas
+export fn listLength(l: IntList): Int => {
+  match l {
+    Nil => 0,
+    Cons { head, tail } => 1 + listLength(tail),
+  }
+};
+
+/// Calcula recursivamente la suma aritmética acumulada de todos los elementos.
+///
+/// Parámetros:
+///   - `l`: Instancia de `IntList` a sumar.
+///
+/// Retorno:
+///   - `Int`: Sumatoria total de los enteros contenidos.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(n) en pila de llamadas recursivas
+export fn listSum(l: IntList): Int => {
+  match l {
+    Nil => 0,
+    Cons { head, tail } => head + listSum(tail),
+  }
+};
+
+/// Determina mediante búsqueda recursiva y pattern matching si un valor existe en la lista funcional.
+///
+/// Parámetros:
+///   - `l`: Instancia de `IntList` donde se buscará.
+///   - `target`: Entero buscado (`Int`).
+///
+/// Retorno:
+///   - `Bool`: `true` si el elemento está presente; `false` si se llega al caso base `Nil`.
+///
+/// Complejidad:
+///   - Temporal: O(n)
+///   - Espacial: O(n) en pila de llamadas recursivas
+export fn adtListContains(l: IntList, target: Int): Bool => {
+  match l {
+    Nil => false,
+    Cons { head, tail } => {
+      if head == target {
+        true
+      } else {
+        adtListContains(tail, target)
+      }
+    },
+  }
+};

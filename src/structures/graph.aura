@@ -1,0 +1,174 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// src/structures/graph.aura - Grafo con Lista de Adyacencia (Ponderado / No Dirigido)
+// ==============================================================================
+
+/// Representa una arista dirigida ponderada hacia un vértice destino.
+///
+/// Campos:
+///   - `to`: Identificador numérico del vértice destino (`Int`).
+///   - `weight`: Costo o peso asociado a transitar por la arista (`Int`).
+export type GraphEdge = {
+  to: Int,
+  weight: Int,
+};
+
+/// Representa un vértice individual en el grafo.
+///
+/// Campos:
+///   - `id`: Identificador correlativo del vértice (`Int`).
+///   - `label`: Etiqueta descriptiva o nombre del vértice (`String`).
+///   - `edges`: Lista de aristas salientes incidentes desde este vértice (`[]GraphEdge`).
+export type GraphVertex = {
+  id: Int,
+  label: String,
+  edges: []GraphEdge,
+};
+
+/// Estructura de Grafo basada en listas de adyacencia.
+///
+/// Permite modelar grafos dirigidos o no dirigidos con soporte para pesos no negativos.
+///
+/// Campos:
+///   - `vertices`: Colección de todos los vértices del grafo (`[]GraphVertex`).
+///   - `isDirected`: Indica si las aristas tienen una única dirección (`true`) o son bidireccionales (`false`).
+export type Graph = {
+  vertices: []GraphVertex,
+  isDirected: Bool,
+};
+
+/// Crea e inicializa un nuevo grafo vacío.
+///
+/// Parámetros:
+///   - `isDirected`: `true` para grafo dirigido (dígrafo); `false` para grafo no dirigido simétrico.
+///
+/// Retorno:
+///   - `Graph`: Nueva instancia de grafo sin vértices ni aristas.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn newGraph(isDirected: Bool): Graph => {
+  let initialVertices: []GraphVertex = [];
+  return {
+    vertices: initialVertices,
+    isDirected: isDirected,
+  };
+};
+
+/// Registra y agrega un nuevo vértice al grafo.
+///
+/// Parámetros:
+///   - `g`: Referencia a la estructura `Graph`.
+///   - `label`: Nombre o etiqueta descriptiva para el nuevo nodo (`String`).
+///
+/// Retorno:
+///   - `Int`: Identificador numérico asignado al nuevo vértice (igual a su índice en `vertices`).
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn addVertex(g: Graph, label: String): Int => {
+  let id = g.vertices.length;
+  let emptyEdges: []GraphEdge = [];
+  let v: GraphVertex = {
+    id: id,
+    label: label,
+    edges: emptyEdges,
+  };
+  g.vertices.push(v);
+  return id;
+};
+
+/// Conecta dos vértices existentes mediante una arista ponderada.
+///
+/// Si el grafo no es dirigido, crea automáticamente la arista en sentido inverso.
+///
+/// Parámetros:
+///   - `g`: Referencia al grafo `Graph`.
+///   - `fromId`: Identificador del vértice origen.
+///   - `toId`: Identificador del vértice destino.
+///   - `weight`: Costo o distancia de la conexión (`Int`).
+///
+/// Retorno:
+///   - `Unit`: Retorna `()`.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn addEdge(g: Graph, fromId: Int, toId: Int, weight: Int): Unit => {
+  if fromId < 0 || fromId >= g.vertices.length || toId < 0 || toId >= g.vertices.length {
+    return;
+  }
+
+  let edgeForward: GraphEdge = { to: toId, weight: weight };
+  g.vertices[fromId].edges.push(edgeForward);
+
+  if !g.isDirected && fromId != toId {
+    let edgeBackward: GraphEdge = { to: fromId, weight: weight };
+    g.vertices[toId].edges.push(edgeBackward);
+  }
+  return;
+};
+
+/// Retorna la cantidad total de vértices registrados en el grafo.
+///
+/// Parámetros:
+///   - `g`: Referencia al grafo `Graph`.
+///
+/// Retorno:
+///   - `Int`: Número de nodos (|V|).
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn vertexCount(g: Graph): Int => {
+  return g.vertices.length;
+};
+
+/// Obtiene los identificadores de todos los vértices adyacentes conectados a un vértice dado.
+///
+/// Parámetros:
+///   - `g`: Referencia al grafo `Graph`.
+///   - `vertexId`: Identificador del vértice a consultar.
+///
+/// Retorno:
+///   - `[]Int`: Lista con los identificadores de los nodos vecinos.
+///
+/// Complejidad:
+///   - Temporal: O(deg(V)) donde deg(V) es el grado del vértice
+///   - Espacial: O(deg(V))
+export fn getNeighbors(g: Graph, vertexId: Int): []Int => {
+  let mut neighbors: []Int = [];
+  if vertexId < 0 || vertexId >= g.vertices.length {
+    return neighbors;
+  }
+
+  let edges = g.vertices[vertexId].edges;
+  let mut i = 0;
+  while i < edges.length {
+    neighbors.push(edges[i].to);
+    i = i + 1;
+  }
+
+  return neighbors;
+};
+
+/// Calcula el grado (número de aristas incidentes/salientes) de un vértice.
+///
+/// Parámetros:
+///   - `g`: Referencia al grafo `Graph`.
+///   - `vertexId`: Identificador del nodo en consulta.
+///
+/// Retorno:
+///   - `Int`: Conteo de aristas conectadas al vértice.
+///
+/// Complejidad:
+///   - Temporal: O(1)
+///   - Espacial: O(1)
+export fn getDegree(g: Graph, vertexId: Int): Int => {
+  if vertexId < 0 || vertexId >= g.vertices.length {
+    return 0;
+  }
+  return g.vertices[vertexId].edges.length;
+};

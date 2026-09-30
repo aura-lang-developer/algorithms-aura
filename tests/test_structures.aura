@@ -1,0 +1,525 @@
+// ==============================================================================
+// Algoritmos y Estructuras en Aura Lang
+// tests/test_structures.aura - Suite de Pruebas Unitarias para Estructuras de Datos
+// ==============================================================================
+
+import {
+  ArrayStack,
+  newArrayStack,
+  push,
+  pop,
+  peek,
+  isEmpty,
+  stackSize,
+  isBalancedParentheses
+} from "../src/structures/stack";
+
+import {
+  Queue,
+  newQueue,
+  enqueue,
+  dequeue,
+  queuePeek,
+  isQueueEmpty,
+  queueSize,
+  CircularBuffer,
+  newCircularBuffer,
+  cbEnqueue,
+  cbDequeue,
+  cbIsFull,
+  cbIsEmpty,
+  cbSize,
+  Deque,
+  newDeque,
+  pushFront,
+  pushBack,
+  popFront,
+  popBack,
+  dequeSize
+} from "../src/structures/queue";
+
+import {
+  SinglyLinkedList,
+  newSinglyLinkedList,
+  slistPrepend,
+  slistAppend,
+  listToArray,
+  slistContains,
+  slistDelete,
+  slistReverse,
+  slistSize,
+  slistIsEmpty,
+  IntList,
+  cons,
+  listLength,
+  listSum,
+  adtListContains
+} from "../src/structures/linked_list";
+
+import {
+  BST,
+  emptyBST,
+  insertBST,
+  searchBST,
+  findMinBST,
+  findMaxBST,
+  treeHeight,
+  treeNodeCount,
+  inOrderTraversal
+} from "../src/structures/binary_search_tree";
+
+import {
+  MinHeap,
+  newMinHeap,
+  heapPush,
+  heapPop,
+  heapPeek,
+  heapSize,
+  heapSort
+} from "../src/structures/heap";
+
+import {
+  HashTable,
+  newHashTable,
+  put,
+  get,
+  containsKey,
+  removeKey,
+  getAllKeys
+} from "../src/structures/hash_table";
+
+import {
+  Trie,
+  newTrie,
+  insertWord,
+  searchWord,
+  startsWith
+} from "../src/structures/trie";
+
+import {
+  Graph,
+  newGraph,
+  addVertex,
+  addEdge,
+  vertexCount,
+  getNeighbors,
+  getDegree
+} from "../src/structures/graph";
+
+/// Compara el valor contenido en un Result exitoso de tipo Int con el valor esperado.
+///
+/// Parámetros:
+/// - `res`: Resultado a evaluar de tipo `Result<Int, String>`.
+/// - `expected`: Valor entero esperado.
+///
+/// Retorno:
+/// - `Bool`: `true` si `res` es `Ok(v)` y `v == expected`; `false` en caso contrario.
+fn isOkWithInt(res: Result<Int, String>, expected: Int): Bool => {
+  match res {
+    Ok(v) => v == expected,
+    Err(_) => false,
+  }
+};
+
+/// Compara el valor contenido en un Result exitoso de tipo String con el valor esperado.
+///
+/// Parámetros:
+/// - `res`: Resultado a evaluar de tipo `Result<String, String>`.
+/// - `expected`: Cadena de texto esperada.
+///
+/// Retorno:
+/// - `Bool`: `true` si `res` es `Ok(v)` y `v == expected`; `false` en caso contrario.
+fn isOkWithString(res: Result<String, String>, expected: String): Bool => {
+  match res {
+    Ok(v) => v == expected,
+    Err(_) => false,
+  }
+};
+
+/// Test 1: Pila LIFO y Paréntesis Balanceados
+/// Valida el comportamiento de la pila (push, pop, peek, isEmpty, stackSize)
+/// y el algoritmo de verificación de paréntesis balanceados.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las aserciones de la pila pasan satisfactoriamente.
+export fn testStack(): Bool => {
+  let s = newArrayStack();
+  if !isEmpty(s) { return false; }
+
+  push(s, 10);
+  push(s, 20);
+  push(s, 30);
+  if stackSize(s) != 3 { return false; }
+
+  if !isOkWithInt(peek(s), 30) { return false; }
+  if !isOkWithInt(pop(s), 30) { return false; }
+  if stackSize(s) != 2 { return false; }
+  if !isOkWithInt(pop(s), 20) { return false; }
+  if !isOkWithInt(pop(s), 10) { return false; }
+  if !isEmpty(s) { return false; }
+
+  // Casos de prueba de paréntesis balanceados
+  if !isBalancedParentheses("{[()]}") { return false; }
+  if !isBalancedParentheses("((()[]))") { return false; }
+  if !isBalancedParentheses("") { return false; }
+  if isBalancedParentheses("([)]") { return false; }
+  if isBalancedParentheses("(((") { return false; }
+  if isBalancedParentheses("}") { return false; }
+
+  return true;
+};
+
+/// Test 2: Cola FIFO y Deque de Doble Extremo
+/// Valida operaciones FIFO estándar (enqueue, dequeue, queuePeek) y operaciones
+/// en ambos extremos de la bicola Deque (pushFront, pushBack, popFront, popBack).
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las aserciones pasan exitosamente.
+export fn testQueueAndDeque(): Bool => {
+  let q = newQueue();
+  if !isQueueEmpty(q) { return false; }
+
+  enqueue(q, 100);
+  enqueue(q, 200);
+  enqueue(q, 300);
+  if queueSize(q) != 3 { return false; }
+
+  if !isOkWithInt(queuePeek(q), 100) { return false; }
+  if !isOkWithInt(dequeue(q), 100) { return false; }
+  if queueSize(q) != 2 { return false; }
+  if !isOkWithInt(dequeue(q), 200) { return false; }
+  if !isOkWithInt(dequeue(q), 300) { return false; }
+  if !isQueueEmpty(q) { return false; }
+
+  // Deque de doble terminación
+  let dq = newDeque();
+  pushBack(dq, 5);
+  pushFront(dq, 2);
+  pushBack(dq, 9);
+  // Deque: [2, 5, 9]
+  if dequeSize(dq) != 3 { return false; }
+
+  if !isOkWithInt(popFront(dq), 2) { return false; }
+  if !isOkWithInt(popBack(dq), 9) { return false; }
+  if !isOkWithInt(popFront(dq), 5) { return false; }
+
+  return true;
+};
+
+/// Test 3: Búfer Circular (Ring Buffer con límites fijos)
+/// Verifica el encolado acotado, rechazo en sobrellenado, desencolado y reutilización
+/// de slots en el búfer circular.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las operaciones del búfer circular pasan exitosamente.
+export fn testCircularBuffer(): Bool => {
+  let cb = newCircularBuffer(3);
+  if !cbIsEmpty(cb) { return false; }
+
+  cbEnqueue(cb, 1);
+  cbEnqueue(cb, 2);
+  cbEnqueue(cb, 3);
+  if !cbIsFull(cb) { return false; }
+
+  // Rechazar inserción en búfer lleno
+  let insertedExtra = cbEnqueue(cb, 4);
+  if insertedExtra { return false; }
+
+  if !isOkWithInt(cbDequeue(cb), 1) { return false; }
+
+  // Permitir insertar tras liberar espacio
+  cbEnqueue(cb, 4);
+  if cbSize(cb) != 3 { return false; }
+
+  if !isOkWithInt(cbDequeue(cb), 2) { return false; }
+  if !isOkWithInt(cbDequeue(cb), 3) { return false; }
+  if !isOkWithInt(cbDequeue(cb), 4) { return false; }
+  if !cbIsEmpty(cb) { return false; }
+
+  return true;
+};
+
+/// Test 4: Lista Enlazada (Mutable SinglyLinkedList y Funcional IntList)
+/// Valida inserción al frente/cola, eliminación de nodos, inversión in-situ,
+/// búsqueda secuencial y operaciones del ADT funcional inmutable.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las aserciones de listas pasan exitosamente.
+export fn testLinkedList(): Bool => {
+  let list = newSinglyLinkedList();
+  slistAppend(list, 10);
+  slistAppend(list, 20);
+  slistPrepend(list, 5);
+  slistAppend(list, 30);
+  // Lista: [5, 10, 20, 30]
+
+  if slistSize(list) != 4 { return false; }
+  if !slistContains(list, 20) { return false; }
+  if slistContains(list, 99) { return false; }
+
+  let arr = listToArray(list);
+  if arr.length != 4 || arr[0] != 5 || arr[1] != 10 || arr[2] != 20 || arr[3] != 30 {
+    return false;
+  }
+
+  slistDelete(list, 20);
+  if slistContains(list, 20) { return false; }
+  if slistSize(list) != 3 { return false; }
+
+  slistReverse(list);
+  let revArr = listToArray(list);
+  if revArr[0] != 30 || revArr[1] != 10 || revArr[2] != 5 {
+    return false;
+  }
+
+  // Lista Funcional ADT
+  let fList = cons(1, cons(2, cons(3, IntList.Nil)));
+  if listLength(fList) != 3 { return false; }
+  if listSum(fList) != 6 { return false; }
+  if !adtListContains(fList, 2) { return false; }
+  if adtListContains(fList, 99) { return false; }
+
+  return true;
+};
+
+/// Test 5: Árbol Binario de Búsqueda (BST)
+/// Verifica inserción, altura del árbol, conteo de nodos, búsqueda binaria,
+/// búsqueda de extremos mínimo/máximo y recorrido in-order ordenado.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las validaciones del BST pasan satisfactoriamente.
+export fn testBST(): Bool => {
+  let mut tree = emptyBST();
+  tree = insertBST(tree, 50);
+  tree = insertBST(tree, 30);
+  tree = insertBST(tree, 70);
+  tree = insertBST(tree, 20);
+  tree = insertBST(tree, 40);
+  tree = insertBST(tree, 60);
+  tree = insertBST(tree, 80);
+
+  if treeNodeCount(tree) != 7 { return false; }
+  if treeHeight(tree) != 3 { return false; }
+  if !searchBST(tree, 40) { return false; }
+  if searchBST(tree, 99) { return false; }
+
+  if !isOkWithInt(findMinBST(tree), 20) { return false; }
+  if !isOkWithInt(findMaxBST(tree), 80) { return false; }
+
+  let mut sortedAcc: []Int = [];
+  inOrderTraversal(tree, sortedAcc);
+  if sortedAcc.length != 7 { return false; }
+  if sortedAcc[0] != 20 || sortedAcc[6] != 80 { return false; }
+
+  return true;
+};
+
+/// Test 6: Min-Heap y HeapSort
+/// Valida inserción (heapPush), extracción de la raíz mínima (heapPop), consulta (heapPeek)
+/// y ordenamiento in-situ con el algoritmo HeapSort.
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las pruebas del montículo y ordenamiento pasan exitosamente.
+export fn testHeap(): Bool => {
+  let h = newMinHeap();
+  heapPush(h, 45);
+  heapPush(h, 20);
+  heapPush(h, 14);
+  heapPush(h, 12);
+  heapPush(h, 31);
+
+  if heapSize(h) != 5 { return false; }
+
+  if !isOkWithInt(heapPeek(h), 12) { return false; }
+  if !isOkWithInt(heapPop(h), 12) { return false; }
+  if !isOkWithInt(heapPop(h), 14) { return false; }
+
+  // HeapSort
+  let unsorted: []Int = [64, 25, 12, 22, 11];
+  let sorted = heapSort(unsorted);
+  if sorted.length != 5 { return false; }
+  if sorted[0] != 11 || sorted[1] != 12 || sorted[2] != 22 || sorted[3] != 25 || sorted[4] != 64 {
+    return false;
+  }
+
+  return true;
+};
+
+/// Test 7: Tabla Hash con Claves de Texto
+/// Valida inserción, consulta de valores, comprobación de existencia (containsKey),
+/// actualización de claves existentes y eliminación (removeKey).
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las operaciones de la tabla hash pasan exitosamente.
+export fn testHashTable(): Bool => {
+  let ht = newHashTable(8);
+  put(ht, "chile", "Santiago");
+  put(ht, "argentina", "Buenos Aires");
+  put(ht, "uruguay", "Montevideo");
+
+  if !containsKey(ht, "chile") { return false; }
+  if !containsKey(ht, "argentina") { return false; }
+  if containsKey(ht, "peru") { return false; }
+
+  if !isOkWithString(get(ht, "chile"), "Santiago") { return false; }
+
+  // Actualización
+  put(ht, "chile", "Santiago de Chile");
+  if !isOkWithString(get(ht, "chile"), "Santiago de Chile") { return false; }
+
+  // Borrado
+  let removed = removeKey(ht, "argentina");
+  if !removed { return false; }
+  if containsKey(ht, "argentina") { return false; }
+
+  let allKeys = getAllKeys(ht);
+  if allKeys.length != 2 { return false; }
+
+  return true;
+};
+
+/// Test 8: Árbol de Prefijos (Trie)
+/// Valida inserción de palabras, búsqueda exacta (searchWord) y búsqueda de prefijos (startsWith).
+///
+/// Retorno:
+/// - `Bool`: `true` si todas las consultas léxicas al Trie retornan los valores esperados.
+export fn testTrie(): Bool => {
+  let tr = newTrie();
+  insertWord(tr, "aura");
+  insertWord(tr, "algoritmo");
+  insertWord(tr, "arbol");
+  insertWord(tr, "binario");
+
+  if !searchWord(tr, "aura") { return false; }
+  if !searchWord(tr, "algoritmo") { return false; }
+  if searchWord(tr, "au") { return false; } // prefijo pero no palabra completa
+  if searchWord(tr, "golang") { return false; }
+
+  if !startsWith(tr, "au") { return false; }
+  if !startsWith(tr, "alg") { return false; }
+  if !startsWith(tr, "bin") { return false; }
+  if startsWith(tr, "xyz") { return false; }
+
+  return true;
+};
+
+/// Test 9: Grafo con Lista de Adyacencia
+/// Valida la adición de vértices, creación de aristas ponderadas, cálculo de grado y consulta de vecinos.
+///
+/// Retorno:
+/// - `Bool`: `true` si las propiedades topológicas del grafo son consistentes.
+export fn testGraph(): Bool => {
+  let g = newGraph(false);
+  let v0 = addVertex(g, "Nodo A");
+  let v1 = addVertex(g, "Nodo B");
+  let v2 = addVertex(g, "Nodo C");
+  let v3 = addVertex(g, "Nodo D");
+
+  addEdge(g, v0, v1, 10);
+  addEdge(g, v0, v2, 15);
+  addEdge(g, v1, v3, 20);
+
+  if vertexCount(g) != 4 { return false; }
+  if getDegree(g, v0) != 2 { return false; }
+  if getDegree(g, v3) != 1 { return false; }
+
+  let neighborsV0 = getNeighbors(g, v0);
+  if neighborsV0.length != 2 { return false; }
+
+  return true;
+};
+
+/// Ejecutor principal de la suite de pruebas unitarias para todas las estructuras de datos.
+/// Ejecuta secuencialmente los 9 conjuntos de pruebas e imprime los resultados por consola.
+///
+/// Retorno:
+/// - `Bool`: `true` si las 9 pruebas pasaron exitosamente; `false` si alguna falló.
+export fn runStructuresTestSuite(): Bool => {
+  println("=================================================================");
+  println("  SUITE DE PRUEBAS: ESTRUCTURAS DE DATOS EN AURA LANG");
+  println("=================================================================");
+
+  let mut allPassed = true;
+
+  if testStack() {
+    println("  [PASS] 01: Pila LIFO (ArrayStack) y Verificación de Paréntesis");
+  } else {
+    println("  [FAIL] 01: Pila LIFO (ArrayStack)");
+    allPassed = false;
+  }
+
+  if testQueueAndDeque() {
+    println("  [PASS] 02: Cola FIFO (Queue) y Deque de Doble Extremo");
+  } else {
+    println("  [FAIL] 02: Cola FIFO y Deque");
+    allPassed = false;
+  }
+
+  if testCircularBuffer() {
+    println("  [PASS] 03: Búfer Circular (Ring Buffer con límites fijos)");
+  } else {
+    println("  [FAIL] 03: Búfer Circular");
+    allPassed = false;
+  }
+
+  if testLinkedList() {
+    println("  [PASS] 04: Lista Enlazada (SinglyLinkedList & ADT Funcional)");
+  } else {
+    println("  [FAIL] 04: Lista Enlazada");
+    allPassed = false;
+  }
+
+  if testBST() {
+    println("  [PASS] 05: Árbol Binario de Búsqueda (BST & Recorridos)");
+  } else {
+    println("  [FAIL] 05: Árbol Binario de Búsqueda");
+    allPassed = false;
+  }
+
+  if testHeap() {
+    println("  [PASS] 06: Montículo Binario (Min-Heap & HeapSort)");
+  } else {
+    println("  [FAIL] 06: Montículo Binario");
+    allPassed = false;
+  }
+
+  if testHashTable() {
+    println("  [PASS] 07: Tabla Hash con Encadenamiento (Separate Chaining)");
+  } else {
+    println("  [FAIL] 07: Tabla Hash");
+    allPassed = false;
+  }
+
+  if testTrie() {
+    println("  [PASS] 08: Árbol de Prefijos (Trie / Prefix Matching)");
+  } else {
+    println("  [FAIL] 08: Árbol de Prefijos (Trie)");
+    allPassed = false;
+  }
+
+  if testGraph() {
+    println("  [PASS] 09: Grafo con Lista de Adyacencia y Grados");
+  } else {
+    println("  [FAIL] 09: Grafo con Lista de Adyacencia");
+    allPassed = false;
+  }
+
+  println("=================================================================");
+  if allPassed {
+    println("  ✨ ¡TODAS LAS PRUEBAS DE ESTRUCTURAS PASARON EXITOSAMENTE! (9/9)");
+  } else {
+    println("  ❌ ALGUNAS PRUEBAS FALLARON.");
+  }
+  println("=================================================================");
+
+  return allPassed;
+};
+
+/// Punto de entrada ejecutable para la suite de pruebas de estructuras.
+///
+/// Retorno:
+/// - `Unit`: Retorna Unit al completar las aserciones.
+export fn main(): Unit => {
+  runStructuresTestSuite();
+  return;
+};
