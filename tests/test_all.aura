@@ -12,15 +12,15 @@ import {
 } from "./test_algorithms";
 
 /// Punto de entrada unificado para la ejecución global de todas las suites de prueba:
-/// - 9 pruebas de estructuras de datos (`test_structures.aura`)
-/// - 5 pruebas de algoritmos fundamentales (`test_algorithms.aura`)
+/// - 10 pruebas de estructuras de datos (`test_structures.aura`)
+/// - 6 pruebas de algoritmos fundamentales (`test_algorithms.aura`)
 ///
 /// Retorno:
 /// - `Unit`: Imprime el resumen consolidado de pruebas exitosas y fallidas.
 export fn main(): Unit => {
   println("");
   println("#################################################################");
-  println("       EJECUTOR GLOBAL DE PRUEBAS — AURA LANG DS&A SUITE         ");
+  println("    EJECUTOR GLOBAL DE PRUEBAS — AURA LANG DS&A (GOLANG STYLE)   ");
   println("#################################################################");
   println("");
 
@@ -31,8 +31,8 @@ export fn main(): Unit => {
   println("");
   println("#################################################################");
   if structuresPassed && algorithmsPassed {
-    println("  🏆 RESULTADO FINAL: 14/14 PRUEBAS EXITOSAS (100% PASSED)");
-    println("  ✨ Todas las estructuras y algoritmos cumplen con sus especificaciones.");
+    println("  🏆 RESULTADO FINAL: 16/16 PRUEBAS EXITOSAS (100% PASSED)");
+    println("  ✨ Todas las estructuras y algoritmos cumplen con el estilo Golang.");
   } else {
     println("  ❌ RESULTADO FINAL: Se detectaron fallos en la suite de pruebas.");
   }

@@ -1,32 +1,27 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/structures/heap.aura - Montículo Binario (Min-Heap) y Cola de Prioridad
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/structures/heap.aura - Montículo Binario Mínimo (Min-Heap) (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Interfaz estructural `PriorityQueue` / `Heap` (Duck Typing).
+//   - Struct continuo idiomático `MinHeap` sobre slice contiguo (`[]Int`).
+//   - Métodos con receptor (`fn (h: MinHeap) Push(...)`).
+//   - Constructor canónico `NewMinHeap()`.
+//   - Manejo explícito de errores con `Result<Int, String>`.
+//   - Algoritmo de ordenamiento `HeapSort` de la librería estándar.
+//   - Wrappers compatibles para invocación funcional.
 // ==============================================================================
 
-/// Estructura de Montículo Binario Mínimo (Min-Heap) implementada sobre un slice contiguo.
-///
-/// Propiedad invariante:
-///   - Para todo nodo en índice `i`, su valor es menor o igual al de sus hijos
-///     en `2*i + 1` (izquierdo) y `2*i + 2` (derecho).
-///
-/// Campos:
-///   - `data`: Slice secuencial que almacena el árbol binario completo en memoria (`[]Int`).
-export type MinHeap = {
-  data: []Int,
-};
+/// Interfaz estructural común para colas de prioridad basadas en montículos.
+export interface PriorityQueue {
+  Push(val: Int): Unit;
+  Pop(): Result<Int, String>;
+  Peek(): Result<Int, String>;
+  IsEmpty(): Bool;
+  Len(): Int;
+}
 
-/// Realiza una división entera exacta sin residuo flotante.
-///
-/// Parámetros:
-///   - `a`: Dividendo entero positivo.
-///   - `b`: Divisor entero positivo.
-///
-/// Retorno:
-///   - `Int`: Cociente truncado hacia cero.
-///
-/// Complejidad:
-///   - Temporal: O(a/b)
-///   - Espacial: O(1)
+/// División entera truncada hacia cero sin residuo flotante.
 fn intDiv(a: Int, b: Int): Int => {
   if b <= 0 || a < b { return 0; }
   let mut count = 0;
@@ -38,262 +33,141 @@ fn intDiv(a: Int, b: Int): Int => {
   return count;
 };
 
-/// Crea e inicializa una nueva instancia de `MinHeap` vacía.
-///
-/// Parámetros:
-///   - Ninguno.
-///
-/// Retorno:
-///   - `MinHeap`: Estructura con slice de datos vacío.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn newMinHeap(): MinHeap => {
+/// Estructura de Montículo Binario Mínimo respaldada por un slice contiguo.
+export struct MinHeap {
+  __aura_type: String,
+  data: []Int,
+};
+
+/// Constructor canónico estilo Go para inicializar un MinHeap vacío.
+export fn NewMinHeap(): MinHeap => {
   let initial: []Int = [];
-  return {
+  {
+    __aura_type: "MinHeap",
     data: initial,
-  };
+  }
 };
 
-/// Retorna la cantidad total de elementos contenidos en el montículo.
-///
-/// Parámetros:
-///   - `h`: Referencia a la estructura `MinHeap`.
-///
-/// Retorno:
-///   - `Int`: Cardinalidad de elementos.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn heapSize(h: MinHeap): Int => {
-  return h.data.length;
-};
+export fn newMinHeap(): MinHeap => NewMinHeap();
 
-/// Determina si el montículo carece de elementos.
-///
-/// Parámetros:
-///   - `h`: Referencia a la estructura `MinHeap`.
-///
-/// Retorno:
-///   - `Bool`: `true` si la longitud es 0; `false` si tiene al menos un valor.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn isHeapEmpty(h: MinHeap): Bool => {
-  return h.data.length == 0;
-};
+// --- Métodos con Receptor para MinHeap ---
 
-/// Consulta el elemento mínimo absoluto (ubicado en la raíz `data[0]`) sin retirarlo.
-///
-/// Parámetros:
-///   - `h`: Referencia a la estructura `MinHeap`.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: El menor valor presente en el montículo.
-///     - `Err(String)`: Mensaje de error si el montículo está vacío.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn heapPeek(h: MinHeap): Result<Int, String> => {
-  if h.data.length == 0 {
-    return Err("Montículo vacío: no hay elemento raíz");
+/// Len retorna la cantidad total de elementos contenidos en el montículo.
+fn (h: MinHeap) Len(): Int => {
+  return len(h.data);
+}
+
+/// IsEmpty verifica si el montículo carece de elementos.
+fn (h: MinHeap) IsEmpty(): Bool => {
+  return len(h.data) == 0;
+}
+
+/// Peek inspecciona el valor mínimo ubicado en la raíz sin extraerlo.
+fn (h: MinHeap) Peek(): Result<Int, String> => {
+  if len(h.data) == 0 {
+    return Err("Montículo vacío: no se puede ejecutar peek");
   }
   return Ok(h.data[0]);
-};
+}
 
-/// Restablece la propiedad de montículo hacia arriba (Sift-Up / Heapify-Up).
-///
-/// Se ejecuta tras insertar un elemento en la última posición, desplazándolo
-/// hacia arriba hasta que sea mayor o igual a su padre.
-///
-/// Parámetros:
-///   - `h`: Referencia al `MinHeap`.
-///   - `startIndex`: Índice inicial del elemento recién insertado.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()`.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-fn siftUp(h: MinHeap, startIndex: Int): Unit => {
-  let mut curr = startIndex;
-
-  while curr > 0 {
-    let parent = intDiv(curr - 1, 2);
-    if h.data[curr] < h.data[parent] {
-      let temp = h.data[curr];
-      h.data[curr] = h.data[parent];
-      h.data[parent] = temp;
-      curr = parent;
-    } else {
-      return;
-    }
-  }
-  return;
-};
-
-/// Restablece la propiedad de montículo hacia abajo (Sift-Down / Heapify-Down).
-///
-/// Se ejecuta tras retirar la raíz y colocar el último elemento en su lugar,
-/// hundiéndolo hasta que sea menor o igual a sus hijos izquierdo y derecho.
-///
-/// Parámetros:
-///   - `h`: Referencia al `MinHeap`.
-///   - `startIndex`: Índice inicial desde donde propagar hacia abajo.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()`.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-fn siftDown(h: MinHeap, startIndex: Int): Unit => {
-  let mut curr = startIndex;
-  let len = h.data.length;
-  let mut left = 2 * curr + 1;
-
-  while left < len {
-    let right = left + 1;
-    let mut smallest = curr;
-
-    if left < len && h.data[left] < h.data[smallest] {
-      smallest = left;
-    }
-    if right < len && h.data[right] < h.data[smallest] {
-      smallest = right;
-    }
-
-    if smallest != curr {
-      let temp = h.data[curr];
-      h.data[curr] = h.data[smallest];
-      h.data[smallest] = temp;
-      curr = smallest;
-      left = 2 * curr + 1;
-    } else {
-      return;
-    }
-  }
-  return;
-};
-
-/// Inserta un nuevo elemento en el Min-Heap en tiempo logarítmico.
-///
-/// Parámetros:
-///   - `h`: Referencia al `MinHeap`.
-///   - `val`: Valor numérico entero (`Int`) a encolar.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()` tras completar la inserción y el filtrado hacia arriba.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-export fn heapPush(h: MinHeap, val: Int): Unit => {
+/// Push inserta un nuevo valor entero en el montículo y restablece la propiedad de min-heap (sift-up).
+fn (h: MinHeap) Push(val: Int): Unit => {
   h.data.push(val);
-  siftUp(h, h.data.length - 1);
-  return;
-};
+  let mut idx = len(h.data) - 1;
 
-/// Extrae y remueve el valor mínimo absoluto ubicado en la raíz del Min-Heap.
-///
-/// Parámetros:
-///   - `h`: Referencia al `MinHeap`.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: El valor mínimo que ocupaba la raíz.
-///     - `Err(String)`: Mensaje de error si el montículo está vacío.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-export fn heapPop(h: MinHeap): Result<Int, String> => {
-  if h.data.length == 0 {
-    return Err("Montículo vacío: no se puede extraer el mínimo");
+  while idx > 0 {
+    let parentIdx = intDiv(idx - 1, 2);
+    if h.data[idx] < h.data[parentIdx] {
+      let temp = h.data[idx];
+      h.data[idx] = h.data[parentIdx];
+      h.data[parentIdx] = temp;
+      idx = parentIdx;
+    } else {
+      idx = 0;
+    }
+  }
+
+  return;
+}
+
+/// Pop extrae y remueve el valor mínimo (la raíz) y restablece el montículo (sift-down).
+fn (h: MinHeap) Pop(): Result<Int, String> => {
+  let count = len(h.data);
+  if count == 0 {
+    return Err("Montículo vacío: no se puede ejecutar pop");
   }
 
   let minVal = h.data[0];
-  let lastIdx = h.data.length - 1;
+  let lastVal = h.data[count - 1];
+  h.data = h.data[0:count - 1];
 
-  if lastIdx == 0 {
-    let emptyList: []Int = [];
-    h.data = emptyList;
-    return Ok(minVal);
-  }
+  let newCount = len(h.data);
+  if newCount > 0 {
+    h.data[0] = lastVal;
+    let mut idx = 0;
 
-  h.data[0] = h.data[lastIdx];
-  h.data = h.data[0:lastIdx];
+    let mut running = true;
+    while running {
+      let left = (2 * idx) + 1;
+      let right = (2 * idx) + 2;
+      let mut smallest = idx;
 
-  siftDown(h, 0);
+      if left < newCount && h.data[left] < h.data[smallest] {
+        smallest = left;
+      }
+      if right < newCount && h.data[right] < h.data[smallest] {
+        smallest = right;
+      }
 
-  return Ok(minVal);
-};
-
-/// Construye un Min-Heap válido a partir de un arreglo arbitrario de enteros en tiempo lineal.
-///
-/// Aplica filtrado descendente (`siftDown`) desde el último nodo interno hacia la raíz.
-///
-/// Parámetros:
-///   - `arr`: Slice de entrada con los enteros a estructurar (`[]Int`).
-///
-/// Retorno:
-///   - `MinHeap`: Nueva estructura de montículo configurada y balanceada.
-///
-/// Complejidad:
-///   - Temporal: O(n) demostrable matemáticamente
-///   - Espacial: O(n)
-export fn buildMinHeap(arr: []Int): MinHeap => {
-  let h = newMinHeap();
-  let mut i = 0;
-  while i < arr.length {
-    h.data.push(arr[i]);
-    i = i + 1;
-  }
-
-  if h.data.length > 1 {
-    let mut k = intDiv(h.data.length, 2) - 1;
-    while k >= 0 {
-      siftDown(h, k);
-      k = k - 1;
-    }
-  }
-
-  return h;
-};
-
-/// Algoritmo de Ordenamiento HeapSort: Ordena un arreglo ascendentemente mediante un Min-Heap.
-///
-/// Parámetros:
-///   - `arr`: Slice desordenado de enteros (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Nuevo slice con todos los elementos en orden no decreciente.
-///
-/// Complejidad:
-///   - Temporal: O(n log n) en el mejor, peor y caso promedio
-///   - Espacial: O(n)
-export fn heapSort(arr: []Int): []Int => {
-  let h = buildMinHeap(arr);
-  let mut sorted: []Int = [];
-
-  while !isHeapEmpty(h) {
-    let minRes = heapPop(h);
-    match minRes {
-      Ok(v) => {
-        sorted.push(v);
-        return;
-      },
-      Err(_) => {
-        return;
+      if smallest != idx {
+        let temp = h.data[idx];
+        h.data[idx] = h.data[smallest];
+        h.data[smallest] = temp;
+        idx = smallest;
+      } else {
+        running = false;
       }
     }
   }
 
+  return Ok(minVal);
+}
+
+// --- Algoritmo HeapSort ---
+
+/// HeapSort ordena un slice de enteros utilizando un MinHeap auxiliar en tiempo O(n log n).
+export fn HeapSort(arr: []Int): []Int => {
+  let heap = NewMinHeap();
+  let mut i = 0;
+  let n = len(arr);
+
+  while i < n {
+    heap.Push(arr[i]);
+    i = i + 1;
+  }
+
+  let mut sorted: []Int = [];
+  while !heap.IsEmpty() {
+    let popRes = heap.Pop();
+    match popRes {
+      Ok(val) => {
+        sorted.push(val);
+        return;
+      },
+      Err(_) => {
+        return;
+      },
+    };
+  }
+
   return sorted;
 };
+
+export fn heapSort(arr: []Int): []Int => HeapSort(arr);
+
+// --- Funciones Wrapper de Compatibilidad hacia atrás ---
+
+export fn heapSize(h: MinHeap): Int => h.Len();
+export fn heapPeek(h: MinHeap): Result<Int, String> => h.Peek();
+export fn heapPush(h: MinHeap, val: Int): Unit => h.Push(val);
+export fn heapPop(h: MinHeap): Result<Int, String> => h.Pop();

@@ -1,47 +1,211 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/structures/binary_search_tree.aura - Árbol Binario de Búsqueda (BST)
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/structures/binary_search_tree.aura - Árbol Binario de Búsqueda (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Interfaz estructural `SearchTree` (Duck Typing).
+//   - Struct contenedor idiomático `BinarySearchTree` con receptor de métodos.
+//   - Métodos con receptor (`fn (t: BinarySearchTree) Insert(...)`).
+//   - Constructores estándar `NewBinarySearchTree()` / `NewBST()`.
+//   - Retorno de errores con `Result<Int, String>`.
+//   - Conversión y recorridos volcados a slices Go (`[]Int`).
+//   - Interoperabilidad completa con funciones recursivas puras de BST.
 // ==============================================================================
 
-/// Tipo Suma Algebraico (ADT) que representa un Árbol Binario de Búsqueda inmutable.
-///
-/// Propiedad invariante:
-///   - Para todo nodo con valor V, todo nodo en su subárbol izquierdo tiene valor < V,
-///     y todo nodo en su subárbol derecho tiene valor > V.
-///
-/// Variantes:
-///   - `Empty`: Caso base, representa un árbol o subárbol vacío.
-///   - `Node { value, left, right }`: Nodo con valor entero (`value`) y subárboles `left` y `right`.
+/// Tipo Suma Algebraico (ADT) que representa un nodo en el Árbol Binario de Búsqueda.
 export type BST =
   | Empty
   | Node { value: Int, left: BST, right: BST };
 
-/// Retorna un árbol binario de búsqueda vacío (caso base `BST.Empty`).
-///
-/// Parámetros:
-///   - Ninguno.
-///
-/// Retorno:
-///   - `BST`: Árbol vacío sin nodos asignados.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn emptyBST(): BST => {
-  return BST.Empty;
+/// Interfaz estructural común para árboles de búsqueda.
+export interface SearchTree {
+  Insert(val: Int): Unit;
+  Search(val: Int): Bool;
+  Min(): Result<Int, String>;
+  Max(): Result<Int, String>;
+  Height(): Int;
+  Len(): Int;
+  IsEmpty(): Bool;
+  InOrder(): []Int;
+}
+
+// --- Funciones Puras Auxiliares del Árbol Recursivo ---
+
+fn insertBSTInternal(tree: BST, val: Int): BST => {
+  match tree {
+    Empty => BST.Node({ value: val, left: BST.Empty, right: BST.Empty }),
+    Node { value, left, right } => {
+      if val < value {
+        BST.Node({
+          value: value,
+          left: insertBSTInternal(left, val),
+          right: right,
+        })
+      } else if val > value {
+        BST.Node({
+          value: value,
+          left: left,
+          right: insertBSTInternal(right, val),
+        })
+      } else {
+        tree
+      }
+    },
+  }
 };
 
-/// Determina si el árbol binario no contiene ningún nodo.
-///
-/// Parámetros:
-///   - `tree`: Instancia del árbol `BST` a evaluar.
-///
-/// Retorno:
-///   - `Bool`: `true` si es `Empty`; `false` si es un `Node`.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
+fn searchBSTInternal(tree: BST, val: Int): Bool => {
+  match tree {
+    Empty => false,
+    Node { value, left, right } => {
+      if val == value {
+        true
+      } else if val < value {
+        searchBSTInternal(left, val)
+      } else {
+        searchBSTInternal(right, val)
+      }
+    },
+  }
+};
+
+fn findMinBSTInternal(tree: BST): Result<Int, String> => {
+  match tree {
+    Empty => Err("Árbol vacío: no tiene valor mínimo"),
+    Node { value, left, right } => {
+      match left {
+        Empty => Ok(value),
+        Node { value: lVal, left: lLeft, right: lRight } => {
+          findMinBSTInternal(left)
+        },
+      }
+    },
+  }
+};
+
+fn findMaxBSTInternal(tree: BST): Result<Int, String> => {
+  match tree {
+    Empty => Err("Árbol vacío: no tiene valor máximo"),
+    Node { value, left, right } => {
+      match right {
+        Empty => Ok(value),
+        Node { value: rVal, left: rLeft, right: rRight } => {
+          findMaxBSTInternal(right)
+        },
+      }
+    },
+  }
+};
+
+fn treeHeightInternal(tree: BST): Int => {
+  match tree {
+    Empty => 0,
+    Node { value, left, right } => {
+      let hLeft = treeHeightInternal(left);
+      let hRight = treeHeightInternal(right);
+      let maxH = if hLeft > hRight { hLeft } else { hRight };
+      1 + maxH
+    },
+  }
+};
+
+fn treeNodeCountInternal(tree: BST): Int => {
+  match tree {
+    Empty => 0,
+    Node { value, left, right } => {
+      1 + treeNodeCountInternal(left) + treeNodeCountInternal(right)
+    },
+  }
+};
+
+fn collectInOrder(tree: BST, acc: []Int): Unit => {
+  match tree {
+    Empty => { return; },
+    Node { value, left, right } => {
+      collectInOrder(left, acc);
+      acc.push(value);
+      collectInOrder(right, acc);
+      return;
+    },
+  }
+};
+
+// --- Estructura Contenedora Go-Style ---
+
+/// Estructura de Árbol Binario de Búsqueda al estilo de Go.
+export struct BinarySearchTree {
+  __aura_type: String,
+  root: BST,
+};
+
+/// Constructor canónico estilo Go para inicializar un nuevo árbol BST vacío.
+export fn NewBinarySearchTree(): BinarySearchTree => {
+  {
+    __aura_type: "BinarySearchTree",
+    root: BST.Empty,
+  }
+};
+
+export fn NewBST(): BinarySearchTree => NewBinarySearchTree();
+
+export fn emptyBST(): BST => BST.Empty;
+
+// --- Métodos con Receptor para BinarySearchTree ---
+
+/// IsEmpty determina si el árbol BST no contiene nodos.
+fn (t: BinarySearchTree) IsEmpty(): Bool => {
+  match t.root {
+    Empty => true,
+    Node { value, left, right } => false,
+  }
+}
+
+/// Len retorna la cantidad total de nodos activos en el árbol.
+fn (t: BinarySearchTree) Len(): Int => {
+  return treeNodeCountInternal(t.root);
+}
+
+/// Height calcula la altura máxima del árbol (0 si está vacío).
+fn (t: BinarySearchTree) Height(): Int => {
+  return treeHeightInternal(t.root);
+}
+
+/// Insert inserta un nuevo valor entero en el árbol preservando la propiedad BST.
+fn (t: BinarySearchTree) Insert(val: Int): Unit => {
+  t.root = insertBSTInternal(t.root, val);
+  return;
+}
+
+/// Search busca si un valor entero existe dentro del árbol BST.
+fn (t: BinarySearchTree) Search(val: Int): Bool => {
+  return searchBSTInternal(t.root, val);
+}
+
+/// Min retorna el valor mínimo almacenado en el árbol BST.
+fn (t: BinarySearchTree) Min(): Result<Int, String> => {
+  return findMinBSTInternal(t.root);
+}
+
+/// Max retorna el valor máximo almacenado en el árbol BST.
+fn (t: BinarySearchTree) Max(): Result<Int, String> => {
+  return findMaxBSTInternal(t.root);
+}
+
+/// InOrder ejecuta un recorrido In-Order retornando los valores ordenados ascendentemente en un slice.
+fn (t: BinarySearchTree) InOrder(): []Int => {
+  let mut result: []Int = [];
+  collectInOrder(t.root, result);
+  return result;
+}
+
+// --- Métodos con Receptor para BST (ADT directo) ---
+
+fn (tree: BST) IsEmpty(): Bool => isTreeEmpty(tree);
+fn (tree: BST) Len(): Int => treeNodeCount(tree);
+fn (tree: BST) Height(): Int => treeHeight(tree);
+
+// --- Funciones Wrapper de Compatibilidad hacia atrás ---
+
 export fn isTreeEmpty(tree: BST): Bool => {
   match tree {
     Empty => true,
@@ -49,291 +213,14 @@ export fn isTreeEmpty(tree: BST): Bool => {
   }
 };
 
-/// Inserta un nuevo valor en el BST preservando estrictamente la propiedad de búsqueda.
-///
-/// Si el valor ya existe en el árbol, se retorna la estructura sin duplicados.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST` donde se insertará el valor.
-///   - `val`: Valor numérico entero (`Int`) a agregar.
-///
-/// Retorno:
-///   - `BST`: Nuevo árbol inmutable que contiene el valor insertado.
-///
-/// Complejidad:
-///   - Temporal: O(log n) en promedio, O(n) en el peor caso (árbol degenerado)
-///   - Espacial: O(log n) promedio en la pila de llamadas
-export fn insertBST(tree: BST, val: Int): BST => {
-  match tree {
-    Empty => BST.Node({ value: val, left: BST.Empty, right: BST.Empty }),
-    Node { value, left, right } => {
-      if val < value {
-        BST.Node({
-          value: value,
-          left: insertBST(left, val),
-          right: right,
-        })
-      } else if val > value {
-        BST.Node({
-          value: value,
-          left: left,
-          right: insertBST(right, val),
-        })
-      } else {
-        // Valores duplicados se conservan sin duplicar nodos
-        tree
-      }
-    },
-  }
-};
+export fn insertBST(tree: BST, val: Int): BST => insertBSTInternal(tree, val);
+export fn searchBST(tree: BST, val: Int): Bool => searchBSTInternal(tree, val);
+export fn findMinBST(tree: BST): Result<Int, String> => findMinBSTInternal(tree);
+export fn findMaxBST(tree: BST): Result<Int, String> => findMaxBSTInternal(tree);
+export fn treeHeight(tree: BST): Int => treeHeightInternal(tree);
+export fn treeNodeCount(tree: BST): Int => treeNodeCountInternal(tree);
 
-/// Busca si un valor entero existe dentro del árbol binario de búsqueda.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST` a consultar.
-///   - `target`: Valor entero (`Int`) que se desea localizar.
-///
-/// Retorno:
-///   - `Bool`: `true` si el elemento está en el árbol; `false` en caso contrario.
-///
-/// Complejidad:
-///   - Temporal: O(log n) promedio, O(n) peor caso
-///   - Espacial: O(log n) en pila de llamadas
-export fn searchBST(tree: BST, target: Int): Bool => {
-  match tree {
-    Empty => false,
-    Node { value, left, right } => {
-      if target == value {
-        true
-      } else if target < value {
-        searchBST(left, target)
-      } else {
-        searchBST(right, target)
-      }
-    },
-  }
-};
-
-/// Localiza y retorna el valor numérico mínimo contenido en el árbol (nodo más a la izquierda).
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST`.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: El menor valor presente en el árbol.
-///     - `Err(String)`: Mensaje de error si el árbol se encuentra vacío.
-///
-/// Complejidad:
-///   - Temporal: O(log n) promedio, O(n) peor caso
-///   - Espacial: O(log n) en pila recursiva
-export fn findMinBST(tree: BST): Result<Int, String> => {
-  match tree {
-    Empty => Err("Árbol vacío: no posee valor mínimo"),
-    Node { value, left, right } => {
-      match left {
-        Empty => Ok(value),
-        Node { value: lVal, left: lLeft, right: lRight } => findMinBST(left),
-      }
-    },
-  }
-};
-
-/// Localiza y retorna el valor numérico máximo contenido en el árbol (nodo más a la derecha).
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST`.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: El mayor valor presente en el árbol.
-///     - `Err(String)`: Mensaje de error si el árbol se encuentra vacío.
-///
-/// Complejidad:
-///   - Temporal: O(log n) promedio, O(n) peor caso
-///   - Espacial: O(log n) en pila recursiva
-export fn findMaxBST(tree: BST): Result<Int, String> => {
-  match tree {
-    Empty => Err("Árbol vacío: no posee valor máximo"),
-    Node { value, left, right } => {
-      match right {
-        Empty => Ok(value),
-        Node { value: rVal, left: rLeft, right: rRight } => findMaxBST(right),
-      }
-    },
-  }
-};
-
-/// Calcula recursivamente la altura del árbol (distancia máxima de la raíz a una hoja).
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST`.
-///
-/// Retorno:
-///   - `Int`: Altura calculada (0 para árbol vacío, 1 para raíz solitaria).
-///
-/// Complejidad:
-///   - Temporal: O(n) recorre todos los nodos
-///   - Espacial: O(h) donde h es la altura del árbol
-export fn treeHeight(tree: BST): Int => {
-  match tree {
-    Empty => 0,
-    Node { value, left, right } => {
-      let hl = treeHeight(left);
-      let hr = treeHeight(right);
-      let maxH = if hl > hr { hl } else { hr };
-      1 + maxH
-    },
-  }
-};
-
-/// Cuenta la cantidad total de nodos existentes en el árbol binario.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST`.
-///
-/// Retorno:
-///   - `Int`: Número total de nodos contenidos.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(h) en llamadas recursivas
-export fn treeNodeCount(tree: BST): Int => {
-  match tree {
-    Empty => 0,
-    Node { value, left, right } => {
-      1 + treeNodeCount(left) + treeNodeCount(right)
-    },
-  }
-};
-
-/// Ejecuta un recorrido In-Order (Izquierda -> Raíz -> Derecha), acumulando los valores en orden ascendente.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST` a recorrer.
-///   - `acc`: Slice acumulador (`[]Int`) mutable donde se irán empujando los valores ordenados.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()` tras finalizar la visita de todos los nodos.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(h)
 export fn inOrderTraversal(tree: BST, acc: []Int): Unit => {
-  match tree {
-    Empty => { return; },
-    Node { value, left, right } => {
-      inOrderTraversal(left, acc);
-      acc.push(value);
-      inOrderTraversal(right, acc);
-      return;
-    },
-  }
-};
-
-/// Ejecuta un recorrido Pre-Order (Raíz -> Izquierda -> Derecha), útil para clonar o serializar el árbol.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST` a recorrer.
-///   - `acc`: Slice acumulador (`[]Int`) mutable receptor de los valores.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()`.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(h)
-export fn preOrderTraversal(tree: BST, acc: []Int): Unit => {
-  match tree {
-    Empty => { return; },
-    Node { value, left, right } => {
-      acc.push(value);
-      preOrderTraversal(left, acc);
-      preOrderTraversal(right, acc);
-      return;
-    },
-  }
-};
-
-/// Ejecuta un recorrido Post-Order (Izquierda -> Derecha -> Raíz), común en liberación jerárquica de recursos.
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST` a recorrer.
-///   - `acc`: Slice acumulador (`[]Int`) mutable receptor de los valores.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()`.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(h)
-export fn postOrderTraversal(tree: BST, acc: []Int): Unit => {
-  match tree {
-    Empty => { return; },
-    Node { value, left, right } => {
-      postOrderTraversal(left, acc);
-      postOrderTraversal(right, acc);
-      acc.push(value);
-      return;
-    },
-  }
-};
-
-/// Elimina un valor específico del árbol preservando la propiedad BST.
-///
-/// Si el nodo a eliminar tiene dos hijos, se reemplaza por su sucesor in-order (mínimo del subárbol derecho).
-///
-/// Parámetros:
-///   - `tree`: Raíz del árbol `BST`.
-///   - `target`: Valor entero (`Int`) que se desea suprimir.
-///
-/// Retorno:
-///   - `BST`: Nuevo árbol reestructurado sin el elemento eliminado.
-///
-/// Complejidad:
-///   - Temporal: O(log n) promedio, O(n) peor caso
-///   - Espacial: O(h) en llamadas recursivas
-export fn deleteBST(tree: BST, target: Int): BST => {
-  match tree {
-    Empty => BST.Empty,
-    Node { value, left, right } => {
-      if target < value {
-        BST.Node({
-          value: value,
-          left: deleteBST(left, target),
-          right: right,
-        })
-      } else if target > value {
-        BST.Node({
-          value: value,
-          left: left,
-          right: deleteBST(right, target),
-        })
-      } else {
-        // Encontramos el nodo a eliminar
-        match left {
-          Empty => right,
-          Node { value: lv, left: ll, right: lr } => {
-            match right {
-              Empty => left,
-              Node { value: rv, left: rl, right: rr } => {
-                // Caso con dos hijos: buscar el sucesor in-order (mínimo del subárbol derecho)
-                let minRes = findMinBST(right);
-                match minRes {
-                  Ok(minVal) => {
-                    BST.Node({
-                      value: minVal,
-                      left: left,
-                      right: deleteBST(right, minVal),
-                    })
-                  },
-                  Err(_) => left,
-                }
-              },
-            }
-          },
-        }
-      }
-    },
-  }
+  collectInOrder(tree, acc);
+  return;
 };

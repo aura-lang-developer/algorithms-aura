@@ -1,60 +1,63 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/algorithms/sorting.aura - Algoritmos de Ordenamiento y Análisis Empírico
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/algorithms/sorting.aura - Algoritmos de Ordenamiento (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Estilo paquete estándar `sort` de Go.
+//   - Struct `SortStats` con método receptor `Summary()`.
+//   - Nomenclatura idiomática Go en PascalCase (`BubbleSort`, `QuickSort`).
+//   - Manipulación de slices Go con `len(s)` e indexación `[0:mid]`.
+//   - Funciones wrapper en minúsculas para compatibilidad hacia atrás.
 // ==============================================================================
 
-/// Métricas estadísticas resultantes de un proceso de ordenamiento.
-///
-/// Campos:
-///   - `algorithm`: Nombre del algoritmo ejecutado (`String`).
-///   - `comparisons`: Número total de comparaciones de elementos realizadas.
-///   - `swaps`: Cantidad de intercambios o asignaciones ejecutadas.
-///   - `isSorted`: Bandera booleana que verifica si el resultado quedó ordenado.
-export type SortStats = {
+/// Métricas estadísticas resultantes de una ejecución de ordenamiento.
+export struct SortStats {
+  __aura_type: String,
   algorithm: String,
   comparisons: Int,
   swaps: Int,
   isSorted: Bool,
 };
 
-/// Clona y duplica un arreglo de enteros creando una copia independiente en memoria.
-///
-/// Parámetros:
-///   - `arr`: Slice original de enteros (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Nuevo slice con los mismos valores en las mismas posiciones.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(n)
-export fn cloneArray(arr: []Int): []Int => {
+/// Constructor idiomático estilo Go para crear una instancia de métricas de ordenamiento.
+export fn NewSortStats(algo: String, comps: Int, swps: Int, sorted: Bool): SortStats => {
+  {
+    __aura_type: "SortStats",
+    algorithm: algo,
+    comparisons: comps,
+    swaps: swps,
+    isSorted: sorted,
+  }
+};
+
+/// Summary genera un informe formateado de las métricas de ordenamiento.
+fn (s: SortStats) Summary(): String => {
+  let status = if s.isSorted { "OK (Ordenado)" } else { "FALLO (Desordenado)" };
+  `[${s.algorithm}] Estado: ${status} | Comparaciones: ${s.comparisons} | Intercambios: ${s.swaps}`
+}
+
+/// CloneSlice clona un slice de enteros creando una copia contigua independiente en memoria.
+export fn CloneSlice(arr: []Int): []Int => {
   let mut copy: []Int = [];
   let mut i = 0;
-  while i < arr.length {
+  let count = len(arr);
+  while i < count {
     copy.push(arr[i]);
     i = i + 1;
   }
   return copy;
 };
 
-/// Verifica si los elementos de un arreglo se encuentran ordenados ascendentemente.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a examinar (`[]Int`).
-///
-/// Retorno:
-///   - `Bool`: `true` si cada elemento es menor o igual al siguiente; `false` si hay inversión.
-///
-/// Complejidad:
-///   - Temporal: O(n)
-///   - Espacial: O(1)
-export fn isSorted(arr: []Int): Bool => {
-  if arr.length <= 1 {
+export fn cloneArray(arr: []Int): []Int => CloneSlice(arr);
+
+/// IsSorted verifica si los elementos de un slice se encuentran en orden no decreciente.
+export fn IsSorted(arr: []Int): Bool => {
+  let count = len(arr);
+  if count <= 1 {
     return true;
   }
   let mut i = 0;
-  while i < (arr.length - 1) {
+  while i < (count - 1) {
     if arr[i] > arr[i + 1] {
       return false;
     }
@@ -63,32 +66,21 @@ export fn isSorted(arr: []Int): Bool => {
   return true;
 };
 
-/// Algoritmo Bubble Sort (Ordenamiento Burbuja).
-///
-/// Compara pares adyacentes repetidamente e intercambia si están en orden inverso.
-/// Incluye optimización de corte temprano si una pasada no realiza ningún intercambio.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a ordenar (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Copia del arreglo ordenada ascendentemente.
-///
-/// Complejidad:
-///   - Temporal: O(n) en el mejor caso (ya ordenado), O(n^2) promedio y peor caso
-///   - Espacial: O(1) auxiliar (excluyendo la copia retornada)
-export fn bubbleSort(arr: []Int): []Int => {
-  let a = cloneArray(arr);
-  let len = a.length;
-  if len <= 1 {
+export fn isSorted(arr: []Int): Bool => IsSorted(arr);
+
+/// BubbleSort ordena un slice de enteros mediante pasadas e intercambios adyacentes.
+export fn BubbleSort(arr: []Int): []Int => {
+  let a = CloneSlice(arr);
+  let count = len(a);
+  if count <= 1 {
     return a;
   }
 
   let mut i = 0;
-  while i < len {
+  while i < count {
     let mut swapped = false;
     let mut j = 0;
-    while j < (len - i - 1) {
+    while j < (count - i - 1) {
       if a[j] > a[j + 1] {
         let temp = a[j];
         a[j] = a[j + 1];
@@ -106,31 +98,21 @@ export fn bubbleSort(arr: []Int): []Int => {
   return a;
 };
 
-/// Algoritmo Selection Sort (Ordenamiento por Selección).
-///
-/// Busca el elemento mínimo del segmento desordenado y lo intercambia con la posición inicial.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a ordenar (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Copia del arreglo ordenada ascendentemente.
-///
-/// Complejidad:
-///   - Temporal: O(n^2) en mejor, promedio y peor caso
-///   - Espacial: O(1) auxiliar
-export fn selectionSort(arr: []Int): []Int => {
-  let a = cloneArray(arr);
-  let len = a.length;
-  if len <= 1 {
+export fn bubbleSort(arr: []Int): []Int => BubbleSort(arr);
+
+/// SelectionSort busca repetidamente el elemento mínimo del segmento restante.
+export fn SelectionSort(arr: []Int): []Int => {
+  let a = CloneSlice(arr);
+  let count = len(a);
+  if count <= 1 {
     return a;
   }
 
   let mut i = 0;
-  while i < (len - 1) {
+  while i < (count - 1) {
     let mut minIdx = i;
     let mut j = i + 1;
-    while j < len {
+    while j < count {
       if a[j] < a[minIdx] {
         minIdx = j;
       }
@@ -148,29 +130,18 @@ export fn selectionSort(arr: []Int): []Int => {
   return a;
 };
 
-/// Algoritmo Insertion Sort (Ordenamiento por Inserción).
-///
-/// Construye el arreglo ordenado de izquierda a derecha insertando cada elemento
-/// en su posición relativa correspondiente.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a ordenar (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Copia del arreglo ordenada ascendentemente.
-///
-/// Complejidad:
-///   - Temporal: O(n) en el mejor caso (casi ordenado), O(n^2) promedio y peor caso
-///   - Espacial: O(1) auxiliar
-export fn insertionSort(arr: []Int): []Int => {
-  let a = cloneArray(arr);
-  let len = a.length;
-  if len <= 1 {
+export fn selectionSort(arr: []Int): []Int => SelectionSort(arr);
+
+/// InsertionSort ordena construyendo el arreglo final elemento por elemento.
+export fn InsertionSort(arr: []Int): []Int => {
+  let a = CloneSlice(arr);
+  let count = len(a);
+  if count <= 1 {
     return a;
   }
 
   let mut i = 1;
-  while i < len {
+  while i < count {
     let key = a[i];
     let mut j = i - 1;
 
@@ -186,24 +157,16 @@ export fn insertionSort(arr: []Int): []Int => {
   return a;
 };
 
-/// Fusiona dos sub-arreglos previamente ordenados en un único arreglo ordenado combinado.
-///
-/// Parámetros:
-///   - `left`: Sub-arreglo izquierdo ordenado (`[]Int`).
-///   - `right`: Sub-arreglo derecho ordenado (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Arreglo unificado y ordenado.
-///
-/// Complejidad:
-///   - Temporal: O(|left| + |right|)
-///   - Espacial: O(|left| + |right|)
+export fn insertionSort(arr: []Int): []Int => InsertionSort(arr);
+
 fn merge(left: []Int, right: []Int): []Int => {
   let mut merged: []Int = [];
   let mut lIdx = 0;
   let mut rIdx = 0;
+  let lLen = len(left);
+  let rLen = len(right);
 
-  while lIdx < left.length && rIdx < right.length {
+  while lIdx < lLen && rIdx < rLen {
     if left[lIdx] <= right[rIdx] {
       merged.push(left[lIdx]);
       lIdx = lIdx + 1;
@@ -213,12 +176,12 @@ fn merge(left: []Int, right: []Int): []Int => {
     }
   }
 
-  while lIdx < left.length {
+  while lIdx < lLen {
     merged.push(left[lIdx]);
     lIdx = lIdx + 1;
   }
 
-  while rIdx < right.length {
+  while rIdx < rLen {
     merged.push(right[rIdx]);
     rIdx = rIdx + 1;
   }
@@ -226,18 +189,6 @@ fn merge(left: []Int, right: []Int): []Int => {
   return merged;
 };
 
-/// Realiza una división entera exacta sin decimales.
-///
-/// Parámetros:
-///   - `a`: Dividendo entero positivo.
-///   - `b`: Divisor entero positivo.
-///
-/// Retorno:
-///   - `Int`: Cociente truncado hacia cero.
-///
-/// Complejidad:
-///   - Temporal: O(a/b)
-///   - Espacial: O(1)
 fn intDiv(a: Int, b: Int): Int => {
   if b <= 0 || a < b { return 0; }
   let mut count = 0;
@@ -249,48 +200,25 @@ fn intDiv(a: Int, b: Int): Int => {
   return count;
 };
 
-/// Algoritmo Merge Sort (Ordenamiento por Mezcla).
-///
-/// Estrategia divide y vencerás: particiona recursivamente a la mitad y fusiona
-/// garantizando estabilidad de ordenamiento.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a ordenar (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Nuevo slice con los elementos ordenados.
-///
-/// Complejidad:
-///   - Temporal: O(n log n) garantizado en todo caso
-///   - Espacial: O(n) auxiliar
-export fn mergeSort(arr: []Int): []Int => {
-  if arr.length <= 1 {
-    return cloneArray(arr);
+/// MergeSort aplica divide y vencerás para ordenar en tiempo O(n log n).
+export fn MergeSort(arr: []Int): []Int => {
+  let count = len(arr);
+  if count <= 1 {
+    return CloneSlice(arr);
   }
 
-  let mid = intDiv(arr.length, 2);
+  let mid = intDiv(count, 2);
   let leftPart = arr[0:mid];
-  let rightPart = arr[mid:arr.length];
+  let rightPart = arr[mid:count];
 
-  let sortedLeft = mergeSort(leftPart);
-  let sortedRight = mergeSort(rightPart);
+  let sortedLeft = MergeSort(leftPart);
+  let sortedRight = MergeSort(rightPart);
 
   return merge(sortedLeft, sortedRight);
 };
 
-/// Función recursiva auxiliar de particionado in-place para Quick Sort.
-///
-/// Parámetros:
-///   - `a`: Arreglo de enteros mutable en ordenación.
-///   - `low`: Índice límite inferior del segmento.
-///   - `high`: Índice límite superior donde se escoge el pivote.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()`.
-///
-/// Complejidad:
-///   - Temporal: O(high - low)
-///   - Espacial: O(log n) en pila de recursión
+export fn mergeSort(arr: []Int): []Int => MergeSort(arr);
+
 fn quickSortRecursive(a: []Int, low: Int, high: Int): Unit => {
   if low >= high {
     return;
@@ -310,7 +238,6 @@ fn quickSortRecursive(a: []Int, low: Int, high: Int): Unit => {
     j = j + 1;
   }
 
-  // Colocar pivote en su posición final
   let pivotPos = i + 1;
   let temp = a[pivotPos];
   a[pivotPos] = a[high];
@@ -321,25 +248,15 @@ fn quickSortRecursive(a: []Int, low: Int, high: Int): Unit => {
   return;
 };
 
-/// Algoritmo Quick Sort (Ordenamiento Rápido).
-///
-/// Particiona alrededor de un elemento pivote ubicándolo en su posición definitiva
-/// y ordenando recursivamente los dos sub-arreglos resultantes.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a ordenar (`[]Int`).
-///
-/// Retorno:
-///   - `[]Int`: Copia del arreglo ordenada ascendentemente.
-///
-/// Complejidad:
-///   - Temporal: O(n log n) en promedio, O(n^2) en el peor caso si el pivote es desbalanceado
-///   - Espacial: O(log n) en la pila de llamadas
-export fn quickSort(arr: []Int): []Int => {
-  let a = cloneArray(arr);
-  if a.length <= 1 {
+/// QuickSort particiona in-place alrededor de un pivote en tiempo promedio O(n log n).
+export fn QuickSort(arr: []Int): []Int => {
+  let a = CloneSlice(arr);
+  let count = len(a);
+  if count <= 1 {
     return a;
   }
-  quickSortRecursive(a, 0, a.length - 1);
+  quickSortRecursive(a, 0, count - 1);
   return a;
 };
+
+export fn quickSort(arr: []Int): []Int => QuickSort(arr);

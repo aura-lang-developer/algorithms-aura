@@ -1,235 +1,153 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/structures/stack.aura - Implementación de Pila (LIFO: Last-In, First-Out)
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/structures/stack.aura - Implementación Idiomática de Pila LIFO (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Interfaz estructural `Stack` con despacho implícito (Duck Typing).
+//   - Estructura pura `ArrayStack` respaldada por un slice contiguo (`[]Int`).
+//   - Métodos con receptor de valor/mutación (`fn (s: ArrayStack) Push(...)`).
+//   - Constructores canónicos `NewArrayStack()` / `NewStack()`.
+//   - Manejo explícito de errores con `Result<T, String>` (equivalente a `(T, error)`).
+//   - Métodos estándar de colección estilo Go: `Len()`, `IsEmpty()`.
+//   - Funciones auxiliares compatibles para interoperabilidad directa.
 // ==============================================================================
 
-/// Estructura de Pila respaldada internamente por un slice dinámico contiguo (`[]Int`).
-///
-/// Principio operativo:
-///   - LIFO (Last-In, First-Out): El último elemento ingresado es el primero en salir.
-///
-/// Campos:
-///   - `stackItems`: Slice de enteros que almacena los elementos secuenciales de la pila.
-export type ArrayStack = {
+/// Interfaz estructural común para colecciones con comportamiento LIFO.
+export interface Stack {
+  Push(val: Int): Unit;
+  Pop(): Result<Int, String>;
+  Peek(): Result<Int, String>;
+  IsEmpty(): Bool;
+  Len(): Int;
+  Clear(): Unit;
+}
+
+/// Estructura de Pila respaldada internamente por un slice dinámico continuo (`[]Int`).
+export struct ArrayStack {
+  __aura_type: String,
   stackItems: []Int,
 };
 
-/// Crea e inicializa una nueva instancia vacía de `ArrayStack`.
-///
-/// Parámetros:
-///   - Ninguno.
-///
-/// Retorno:
-///   - `ArrayStack`: Nueva instancia de pila con slice de elementos vacío (`[]`).
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn newArrayStack(): ArrayStack => {
+/// Constructor idiomático estilo Go para crear una nueva instancia vacía de `ArrayStack`.
+export fn NewArrayStack(): ArrayStack => {
   let initial: []Int = [];
-  return {
+  {
+    __aura_type: "ArrayStack",
     stackItems: initial,
-  };
+  }
 };
 
-/// Inserta un nuevo valor entero en el tope de la pila.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` donde se insertará el elemento.
-///   - `val`: Valor numérico entero (`Int`) que se posicionará en el nuevo tope.
-///
-/// Retorno:
-///   - `Unit`: Retorna la unidad vacía `()` al completar la operación.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1) amortizado
-export fn push(s: ArrayStack, val: Int): Unit => {
+/// Constructor alternativo de conveniencia para crear una pila.
+export fn NewStack(): ArrayStack => NewArrayStack();
+
+/// Constructor heredado para compatibilidad hacia atrás.
+export fn newArrayStack(): ArrayStack => NewArrayStack();
+
+// --- Métodos con Receptor (Go Method Receivers) ---
+
+/// Push inserta un nuevo valor entero en el tope de la pila.
+fn (s: ArrayStack) Push(val: Int): Unit => {
   s.stackItems.push(val);
   return;
-};
+}
 
-/// Extrae y remueve el elemento ubicado actualmente en el tope de la pila.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` de la cual se removerá el tope.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: Contiene el valor entero retirado del tope si la pila no estaba vacía.
-///     - `Err(String)`: Mensaje de error descriptivo si la pila se encontraba vacía.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn pop(s: ArrayStack): Result<Int, String> => {
-  if s.stackItems.length == 0 {
+/// Pop extrae y remueve el elemento superior del tope de la pila.
+/// Retorna `Result<Int, String>`: `Ok(valor)` si tiene elementos o `Err(...)` si está vacía.
+fn (s: ArrayStack) Pop(): Result<Int, String> => {
+  if len(s.stackItems) == 0 {
     return Err("Pila vacía: no se puede ejecutar pop");
   }
-  let lastIdx = s.stackItems.length - 1;
+  let lastIdx = len(s.stackItems) - 1;
   let val = s.stackItems[lastIdx];
-  // Rebanar para retirar el último elemento
   s.stackItems = s.stackItems[0:lastIdx];
   return Ok(val);
-};
+}
 
-/// Consulta e inspecciona el valor ubicado en el tope de la pila sin removerlo.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` a inspeccionar.
-///
-/// Retorno:
-///   - `Result<Int, String>`:
-///     - `Ok(Int)`: Valor del elemento superior si la pila tiene al menos un elemento.
-///     - `Err(String)`: Mensaje descriptivo de error si la pila no contiene elementos.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn peek(s: ArrayStack): Result<Int, String> => {
-  if s.stackItems.length == 0 {
+/// Peek consulta el valor del elemento en el tope sin retirarlo.
+fn (s: ArrayStack) Peek(): Result<Int, String> => {
+  if len(s.stackItems) == 0 {
     return Err("Pila vacía: no se puede ejecutar peek");
   }
-  let lastIdx = s.stackItems.length - 1;
+  let lastIdx = len(s.stackItems) - 1;
   return Ok(s.stackItems[lastIdx]);
-};
+}
 
-/// Determina si la pila carece de elementos almacenados.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` a evaluar.
-///
-/// Retorno:
-///   - `Bool`: `true` si la longitud de la pila es exactamente 0; `false` en caso contrario.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn isEmpty(s: ArrayStack): Bool => {
-  return s.stackItems.length == 0;
-};
+/// IsEmpty determina si la pila no contiene ningún elemento.
+fn (s: ArrayStack) IsEmpty(): Bool => {
+  return len(s.stackItems) == 0;
+}
 
-/// Obtiene la cantidad total de elementos actualmente almacenados en la pila.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` a cuantificar.
-///
-/// Retorno:
-///   - `Int`: Cardinalidad numérica de elementos presentes en la pila.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn stackSize(s: ArrayStack): Int => {
-  return s.stackItems.length;
-};
+/// Len retorna la cantidad total de elementos actualmente en la pila (estilo `len(s)` de Go).
+fn (s: ArrayStack) Len(): Int => {
+  return len(s.stackItems);
+}
 
-/// Restablece y vacía completamente la pila, liberando los elementos contenidos.
-///
-/// Parámetros:
-///   - `s`: Referencia a la estructura `ArrayStack` que será limpiada.
-///
-/// Retorno:
-///   - `Unit`: Retorna `()` tras asignar una nueva colección vacía.
-///
-/// Complejidad:
-///   - Temporal: O(1)
-///   - Espacial: O(1)
-export fn clear(s: ArrayStack): Unit => {
+/// Clear vacía y libera todos los elementos contenidos en la pila.
+fn (s: ArrayStack) Clear(): Unit => {
   let emptyList: []Int = [];
   s.stackItems = emptyList;
   return;
-};
+}
 
-/// Validador sintáctico de balanceo de delimitadores utilizando una pila LIFO.
-///
-/// Evalúa si los pares de paréntesis `()`, corchetes `[]` y llaves `{}`
-/// abren y cierran en el orden anidado correcto.
-///
-/// Parámetros:
-///   - `expression`: Cadena de texto (`String`) que contiene la expresión a verificar.
-///
-/// Retorno:
-///   - `Bool`: `true` si todos los delimitadores están perfectamente balanceados; `false` si hay desbalance o símbolos cruzados.
-///
-/// Complejidad:
-///   - Temporal: O(n) donde n es la longitud de la cadena
-///   - Espacial: O(n) en el peor caso de anidamiento
-export fn isBalancedParentheses(expression: String): Bool => {
-  let s = newArrayStack();
+// --- Algoritmo de Aplicación: Validación de Paréntesis ---
+
+/// IsBalancedParentheses valida si una expresión contiene delimitadores balanceados: `()`, `[]`, `{}`.
+export fn IsBalancedParentheses(expr: String): Bool => {
+  let s = NewArrayStack();
   let mut i = 0;
+  let exprLen = len(expr);
 
-  while i < expression.length {
-    let ch = expression[i];
+  while i < exprLen {
+    let ch = expr[i];
 
-    // Caracteres de apertura: se apilan códigos numéricos (1='(', 2='[', 3='{')
     if ch == "(" {
-      push(s, 1);
+      s.Push(1);
     } else if ch == "[" {
-      push(s, 2);
+      s.Push(2);
     } else if ch == "{" {
-      push(s, 3);
+      s.Push(3);
     } else if ch == ")" {
-      if isEmpty(s) {
-        return false;
-      }
-      let topRes = pop(s);
+      if s.IsEmpty() { return false; }
+      let topRes = s.Pop();
       let mut matched = false;
       match topRes {
-        Ok(v) => {
-          if v == 1 {
-            matched = true;
-          }
-        },
-        Err(e) => {
-          matched = false;
-        }
-      }
-      if !matched {
-        return false;
-      }
+        Ok(v) => { if v == 1 { matched = true; } },
+        Err(_) => { matched = false; },
+      };
+      if !matched { return false; }
     } else if ch == "]" {
-      if isEmpty(s) {
-        return false;
-      }
-      let topRes = pop(s);
+      if s.IsEmpty() { return false; }
+      let topRes = s.Pop();
       let mut matched = false;
       match topRes {
-        Ok(v) => {
-          if v == 2 {
-            matched = true;
-          }
-        },
-        Err(e) => {
-          matched = false;
-        }
-      }
-      if !matched {
-        return false;
-      }
+        Ok(v) => { if v == 2 { matched = true; } },
+        Err(_) => { matched = false; },
+      };
+      if !matched { return false; }
     } else if ch == "}" {
-      if isEmpty(s) {
-        return false;
-      }
-      let topRes = pop(s);
+      if s.IsEmpty() { return false; }
+      let topRes = s.Pop();
       let mut matched = false;
       match topRes {
-        Ok(v) => {
-          if v == 3 {
-            matched = true;
-          }
-        },
-        Err(e) => {
-          matched = false;
-        }
-      }
-      if !matched {
-        return false;
-      }
+        Ok(v) => { if v == 3 { matched = true; } },
+        Err(_) => { matched = false; },
+      };
+      if !matched { return false; }
     }
 
     i = i + 1;
   }
 
-  return isEmpty(s);
+  return s.IsEmpty();
 };
+
+export fn isBalancedParentheses(expr: String): Bool => IsBalancedParentheses(expr);
+
+// --- Funciones Wrapper de Compatibilidad hacia atrás ---
+
+export fn push(s: ArrayStack, val: Int): Unit => s.Push(val);
+export fn pop(s: ArrayStack): Result<Int, String> => s.Pop();
+export fn peek(s: ArrayStack): Result<Int, String> => s.Peek();
+export fn isEmpty(s: ArrayStack): Bool => s.IsEmpty();
+export fn stackSize(s: ArrayStack): Int => s.Len();
+export fn clear(s: ArrayStack): Unit => s.Clear();

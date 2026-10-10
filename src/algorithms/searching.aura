@@ -1,20 +1,16 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/algorithms/searching.aura - Algoritmos de Búsqueda Secuencial y Logarítmica
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/algorithms/searching.aura - Algoritmos de Búsqueda (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Estilo paquete estándar `search` / `slices` de Go.
+//   - Nombres exportados canónicos en PascalCase (`BinarySearch`, `LinearSearch`).
+//   - Uso de `len(s)` para cardinalidad sobre slices.
+//   - Retornos explícitos de índices con convenciones Go (-1 para no encontrado).
+//   - Funciones auxiliares de tipo `SearchInts` con `Result<Int, String>`.
+//   - Wrappers funcionales de compatibilidad hacia atrás.
 // ==============================================================================
 
-/// Realiza una división entera truncada hacia cero sin residuo decimal.
-///
-/// Parámetros:
-///   - `a`: Dividendo entero positivo.
-///   - `b`: Divisor entero positivo.
-///
-/// Retorno:
-///   - `Int`: Cociente entero truncado.
-///
-/// Complejidad:
-///   - Temporal: O(a/b)
-///   - Espacial: O(1)
 fn intDiv(a: Int, b: Int): Int => {
   if b <= 0 || a < b { return 0; }
   let mut count = 0;
@@ -26,17 +22,6 @@ fn intDiv(a: Int, b: Int): Int => {
   return count;
 };
 
-/// Calcula la raíz cuadrada entera truncada floor(sqrt(n)).
-///
-/// Parámetros:
-///   - `n`: Valor entero no negativo (`Int`).
-///
-/// Retorno:
-///   - `Int`: El mayor entero x tal que x*x <= n.
-///
-/// Complejidad:
-///   - Temporal: O(sqrt(n))
-///   - Espacial: O(1)
 fn integerSqrt(n: Int): Int => {
   if n <= 0 { return 0; }
   let mut x = 1;
@@ -48,24 +33,11 @@ fn integerSqrt(n: Int): Int => {
   return x - 1;
 };
 
-/// Algoritmo Linear Search (Búsqueda Lineal / Secuencial).
-///
-/// Escanea secuencialmente cada posición hasta hallar el valor buscado.
-/// No impone requisitos de orden previo sobre la colección.
-///
-/// Parámetros:
-///   - `arr`: Slice de enteros a examinar (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Índice base 0 donde reside el elemento; -1 si no fue encontrado.
-///
-/// Complejidad:
-///   - Temporal: O(n) peor caso, O(1) mejor caso (primer elemento)
-///   - Espacial: O(1)
-export fn linearSearch(arr: []Int, target: Int): Int => {
+/// LinearSearch escanea secuencialmente cada posición hasta hallar el valor buscado.
+export fn LinearSearch(arr: []Int, target: Int): Int => {
   let mut i = 0;
-  while i < arr.length {
+  let count = len(arr);
+  while i < count {
     if arr[i] == target {
       return i;
     }
@@ -74,25 +46,12 @@ export fn linearSearch(arr: []Int, target: Int): Int => {
   return -1;
 };
 
-/// Algoritmo Binary Search (Búsqueda Binaria Iterativa).
-///
-/// Reduce a la mitad el espacio de búsqueda en cada iteración comparando
-/// con el punto medio del segmento activo.
-/// Requiere que el arreglo esté estrictamente ordenado de forma ascendente.
-///
-/// Parámetros:
-///   - `arr`: Slice ordenado de enteros (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Índice base 0 donde se ubica el elemento; -1 si no existe.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-export fn binarySearch(arr: []Int, target: Int): Int => {
+export fn linearSearch(arr: []Int, target: Int): Int => LinearSearch(arr, target);
+
+/// BinarySearch busca dividiendo el rango ordenado en dos mitades en tiempo O(log n).
+export fn BinarySearch(arr: []Int, target: Int): Int => {
   let mut low = 0;
-  let mut high = arr.length - 1;
+  let mut high = len(arr) - 1;
 
   while low <= high {
     let mid = intDiv(low + high, 2);
@@ -110,24 +69,11 @@ export fn binarySearch(arr: []Int, target: Int): Int => {
   return -1;
 };
 
-/// Algoritmo Jump Search (Búsqueda por Saltos).
-///
-/// Avanza en bloques de tamaño óptimo sqrt(n) hasta rebasar el valor buscado
-/// y luego ejecuta una búsqueda lineal dentro del bloque delimitado.
-/// Requiere que el arreglo esté ordenado ascendentemente.
-///
-/// Parámetros:
-///   - `arr`: Slice ordenado de enteros (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Índice del elemento si fue localizado; -1 en caso contrario.
-///
-/// Complejidad:
-///   - Temporal: O(sqrt(n))
-///   - Espacial: O(1)
-export fn jumpSearch(arr: []Int, target: Int): Int => {
-  let n = arr.length;
+export fn binarySearch(arr: []Int, target: Int): Int => BinarySearch(arr, target);
+
+/// JumpSearch avanza en saltos de longitud óptima sqrt(n) sobre un slice ordenado.
+export fn JumpSearch(arr: []Int, target: Int): Int => {
+  let n = len(arr);
   if n == 0 {
     return -1;
   }
@@ -156,24 +102,12 @@ export fn jumpSearch(arr: []Int, target: Int): Int => {
   return -1;
 };
 
-/// Algoritmo Ternary Search (Búsqueda Ternaria).
-///
-/// Divide el rango de búsqueda en tres tercios utilizando dos puntos medios (`mid1` y `mid2`).
-/// Requiere que el arreglo se encuentre previamente ordenado.
-///
-/// Parámetros:
-///   - `arr`: Slice ordenado de enteros (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Índice donde reside el elemento; -1 si no fue encontrado.
-///
-/// Complejidad:
-///   - Temporal: O(log_3 n)
-///   - Espacial: O(1)
-export fn ternarySearch(arr: []Int, target: Int): Int => {
+export fn jumpSearch(arr: []Int, target: Int): Int => JumpSearch(arr, target);
+
+/// TernarySearch divide el rango de búsqueda en tres tercios utilizando dos puntos medios.
+export fn TernarySearch(arr: []Int, target: Int): Int => {
   let mut low = 0;
-  let mut high = arr.length - 1;
+  let mut high = len(arr) - 1;
 
   while low <= high {
     let third = intDiv(high - low, 3);
@@ -200,28 +134,19 @@ export fn ternarySearch(arr: []Int, target: Int): Int => {
   return -1;
 };
 
-/// Encuentra el índice de la primera aparición (Lower Bound) de un valor en un arreglo ordenado con duplicados.
-///
-/// Parámetros:
-///   - `arr`: Slice ordenado de enteros (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Menor índice donde aparece `target`; -1 si no existe en la colección.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-export fn findFirstOccurrence(arr: []Int, target: Int): Int => {
+export fn ternarySearch(arr: []Int, target: Int): Int => TernarySearch(arr, target);
+
+/// FindFirstOccurrence halla el menor índice (Lower Bound) de un valor en un slice ordenado.
+export fn FindFirstOccurrence(arr: []Int, target: Int): Int => {
   let mut low = 0;
-  let mut high = arr.length - 1;
+  let mut high = len(arr) - 1;
   let mut result = -1;
 
   while low <= high {
     let mid = intDiv(low + high, 2);
     if arr[mid] == target {
       result = mid;
-      high = mid - 1; // Continuar reduciendo hacia la izquierda
+      high = mid - 1;
     } else if arr[mid] < target {
       low = mid + 1;
     } else {
@@ -232,28 +157,19 @@ export fn findFirstOccurrence(arr: []Int, target: Int): Int => {
   return result;
 };
 
-/// Encuentra el índice de la última aparición (Upper Bound) de un valor en un arreglo ordenado con duplicados.
-///
-/// Parámetros:
-///   - `arr`: Slice ordenado de enteros (`[]Int`).
-///   - `target`: Valor entero buscado (`Int`).
-///
-/// Retorno:
-///   - `Int`: Mayor índice donde aparece `target`; -1 si no existe en la colección.
-///
-/// Complejidad:
-///   - Temporal: O(log n)
-///   - Espacial: O(1)
-export fn findLastOccurrence(arr: []Int, target: Int): Int => {
+export fn findFirstOccurrence(arr: []Int, target: Int): Int => FindFirstOccurrence(arr, target);
+
+/// FindLastOccurrence halla el mayor índice (Upper Bound) de un valor en un slice ordenado.
+export fn FindLastOccurrence(arr: []Int, target: Int): Int => {
   let mut low = 0;
-  let mut high = arr.length - 1;
+  let mut high = len(arr) - 1;
   let mut result = -1;
 
   while low <= high {
     let mid = intDiv(low + high, 2);
     if arr[mid] == target {
       result = mid;
-      low = mid + 1; // Continuar reduciendo hacia la derecha
+      low = mid + 1;
     } else if arr[mid] < target {
       low = mid + 1;
     } else {
@@ -262,4 +178,15 @@ export fn findLastOccurrence(arr: []Int, target: Int): Int => {
   }
 
   return result;
+};
+
+export fn findLastOccurrence(arr: []Int, target: Int): Int => FindLastOccurrence(arr, target);
+
+/// SearchInts realiza una búsqueda binaria idiomática con retorno explícito de error estilo Go.
+export fn SearchInts(arr: []Int, target: Int): Result<Int, String> => {
+  let idx = BinarySearch(arr, target);
+  if idx >= 0 {
+    return Ok(idx);
+  }
+  return Err(`Elemento ${target} no encontrado en la colección`);
 };

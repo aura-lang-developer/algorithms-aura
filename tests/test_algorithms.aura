@@ -4,6 +4,14 @@
 // ==============================================================================
 
 import {
+  BubbleSort,
+  QuickSort,
+  MergeSort,
+  SelectionSort,
+  InsertionSort,
+  IsSorted,
+  CloneSlice,
+  NewSortStats,
   bubbleSort,
   selectionSort,
   insertionSort,
@@ -13,6 +21,13 @@ import {
 } from "../src/algorithms/sorting";
 
 import {
+  LinearSearch,
+  BinarySearch,
+  JumpSearch,
+  TernarySearch,
+  SearchInts,
+  FindFirstOccurrence,
+  FindLastOccurrence,
   linearSearch,
   binarySearch,
   jumpSearch,
@@ -23,12 +38,17 @@ import {
 
 import {
   Graph,
+  NewGraph,
   newGraph,
   addVertex,
   addEdge
 } from "../src/structures/graph";
 
 import {
+  BFS,
+  DFS,
+  Dijkstra,
+  IsConnected,
   bfs,
   dfs,
   dijkstra,
@@ -36,6 +56,11 @@ import {
 } from "../src/algorithms/graphs";
 
 import {
+  Fibonacci,
+  Knapsack01,
+  LongestCommonSubsequence,
+  MinCoinChange,
+  MaxSubarraySum,
   fibonacci,
   knapsack01,
   longestCommonSubsequence,
@@ -44,6 +69,12 @@ import {
 } from "../src/algorithms/dynamic_programming";
 
 import {
+  NaivePatternSearch,
+  RabinKarpSearch,
+  IsPalindrome,
+  IsAnagram,
+  ReverseString,
+  LevenshteinDistance,
   naivePatternSearch,
   rabinKarpSearch,
   isPalindrome,
@@ -258,14 +289,80 @@ export fn testStrings(): Bool => {
   return true;
 };
 
+/// Test 6: Validación de Algoritmos Idiomáticos estilo Golang (PascalCase, Slices y Structs)
+export fn testGolangStyleAlgorithms(): Bool => {
+  // 1. Sorting Go-style
+  let list: []Int = [50, 20, 40, 10, 30];
+  let sortedQ = QuickSort(list);
+  if !IsSorted(sortedQ) || len(sortedQ) != 5 || sortedQ[0] != 10 || sortedQ[4] != 50 { return false; }
+  let sortedM = MergeSort(list);
+  if !IsSorted(sortedM) || sortedM[0] != 10 { return false; }
+  let stats = NewSortStats("QuickSort", 12, 4, true);
+  let summary = stats.Summary();
+  if len(summary) == 0 { return false; }
+
+  // 2. Searching Go-style
+  let searchIdx = BinarySearch(sortedQ, 30);
+  if searchIdx != 2 { return false; }
+  let foundRes = SearchInts(sortedQ, 40);
+  let mut searchOk = false;
+  match foundRes {
+    Ok(idx) => {
+      if idx == 3 { searchOk = true; }
+    },
+    Err(_) => {
+      searchOk = false;
+    },
+  };
+  if !searchOk { return false; }
+
+  // 3. Graphs Go-style
+  let g = NewGraph(false);
+  let n0 = g.AddVertex("A");
+  let n1 = g.AddVertex("B");
+  let n2 = g.AddVertex("C");
+  g.AddEdge(n0, n1, 5);
+  g.AddEdge(n1, n2, 10);
+  let bfsOrder = BFS(g, n0);
+  if len(bfsOrder) != 3 { return false; }
+  let dfsOrder = DFS(g, n0);
+  if len(dfsOrder) != 3 { return false; }
+  let dists = Dijkstra(g, n0);
+  if len(dists) != 3 || dists[n0] != 0 || dists[n2] != 15 { return false; }
+  if !IsConnected(g, n0) { return false; }
+
+  // 4. Dynamic Programming Go-style
+  if Fibonacci(8) != 21 { return false; }
+  let w: []Int = [2, 3, 4];
+  let v: []Int = [3, 4, 5];
+  if Knapsack01(w, v, 5) != 7 { return false; }
+  if LongestCommonSubsequence("abcde", "ace") != 3 { return false; }
+  let coins: []Int = [1, 2, 5];
+  if MinCoinChange(coins, 11) != 3 { return false; }
+  let kadaneArr: []Int = [-2, 1, -3, 4, -1, 2, 1, -5, 4];
+  if MaxSubarraySum(kadaneArr) != 6 { return false; }
+
+  // 5. Strings Go-style
+  let matches = NaivePatternSearch("abracadabra", "abra");
+  if len(matches) != 2 || matches[0] != 0 || matches[1] != 7 { return false; }
+  let rkMatches = RabinKarpSearch("abracadabra", "abra");
+  if len(rkMatches) != 2 { return false; }
+  if !IsPalindrome("reconocer") || IsPalindrome("golang") { return false; }
+  if !IsAnagram("amor", "roma") || IsAnagram("hola", "mundo") { return false; }
+  if ReverseString("golang") != "gnalog" { return false; }
+  if LevenshteinDistance("kitten", "sitting") != 3 { return false; }
+
+  return true;
+};
+
 /// Ejecutor principal de la suite de pruebas unitarias para todos los algoritmos fundamentales.
-/// Ejecuta secuencialmente los 5 conjuntos de pruebas de algoritmos e imprime los resultados por consola.
+/// Ejecuta secuencialmente los 6 conjuntos de pruebas de algoritmos e imprime los resultados por consola.
 ///
 /// Retorno:
-/// - `Bool`: `true` si los 5 grupos de pruebas pasaron con éxito; `false` si alguno falló.
+/// - `Bool`: `true` si los 6 grupos de pruebas pasaron con éxito; `false` si alguno falló.
 export fn runAlgorithmsTestSuite(): Bool => {
   println("=================================================================");
-  println("  SUITE DE PRUEBAS: ALGORITMOS FUNDAMENTALES EN AURA LANG");
+  println("  SUITE DE PRUEBAS: ALGORITMOS FUNDAMENTALES EN AURA LANG (GO STYLE)");
   println("=================================================================");
 
   let mut allPassed = true;
@@ -305,9 +402,16 @@ export fn runAlgorithmsTestSuite(): Bool => {
     allPassed = false;
   }
 
+  if testGolangStyleAlgorithms() {
+    println("  [PASS] 06: Paradigma Golang (PascalCase, Slices y Struct de Métricas)");
+  } else {
+    println("  [FAIL] 06: Paradigma Golang en Algoritmos");
+    allPassed = false;
+  }
+
   println("=================================================================");
   if allPassed {
-    println("  ✨ ¡TODAS LAS PRUEBAS DE ALGORITMOS PASARON EXITOSAMENTE! (5/5)");
+    println("  ✨ ¡TODAS LAS PRUEBAS DE ALGORITMOS PASARON EXITOSAMENTE! (6/6)");
   } else {
     println("  ❌ ALGUNAS PRUEBAS DE ALGORITMOS FALLARON.");
   }

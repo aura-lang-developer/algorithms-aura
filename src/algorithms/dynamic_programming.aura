@@ -1,33 +1,17 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/algorithms/dynamic_programming.aura - Programación Dinámica y Optimización
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/algorithms/dynamic_programming.aura - Programación Dinámica (Go Style)
 // ==============================================================================
-// Algoritmos Implementados:
-//   1. Fibonacci (Tabulación):               O(n) tiempo, O(1) espacio
-//   2. Problema de la Mochila 0/1 (Knapsack): O(n * W) tiempo, O(W) espacio
-//   3. Longest Common Subsequence (LCS):      O(m * n) tiempo, O(m * n) espacio
-//   4. Cambio Mínimo de Monedas (Coin Change): O(amount * |coins|) tiempo, O(amount) espacio
-//   5. Máxima Suma de Subarreglo (Kadane):    O(n) tiempo, O(1) espacio
+// Principios Golang aplicados:
+//   - Funciones exportadas en PascalCase (`Fibonacci`, `Knapsack01`, etc.).
+//   - Uso de `len(s)` para manejo canónico de colecciones y slices.
+//   - Optimización de espacio en memoria constante O(1) o lineal O(W).
+//   - Retornos tempranos y guard clauses.
+//   - Wrappers funcionales de compatibilidad hacia atrás.
 // ==============================================================================
 
-/// 1. Fibonacci con Tabulación Bottom-Up en Espacio O(1)
-/// Calcula el n-ésimo término de la sucesión de Fibonacci utilizando tabulación
-/// bottom-up (programación dinámica iterativa) optimizada en espacio constante.
-///
-/// Casos base:
-/// - F(0) = 0
-/// - F(1) = 1
-///
-/// Parámetros:
-/// - `n`: Índice del término de la sucesión a calcular (debe ser no negativo).
-///
-/// Retorno:
-/// - `Int`: El valor de F(n). Si n <= 0, retorna 0.
-///
-/// Complejidad:
-/// - Tiempo: O(n)
-/// - Espacio: O(1)
-export fn fibonacci(n: Int): Int => {
+/// Fibonacci calcula el n-ésimo término de Fibonacci con tabulación iterativa en O(1) espacio.
+export fn Fibonacci(n: Int): Int => {
   if n <= 0 {
     return 0;
   }
@@ -50,25 +34,10 @@ export fn fibonacci(n: Int): Int => {
   return current;
 };
 
-/// 2. Problema de la Mochila 0/1 (0/1 Knapsack Problem)
-/// Resuelve el Problema de la Mochila 0/1 usando programación dinámica con optimización
-/// de espacio en un único arreglo unidimensional.
-///
-/// Determina el valor acumulado máximo que puede cargarse en una mochila con límite
-/// de peso fijo, donde cada ítem puede tomarse a lo sumo una vez (0 o 1).
-///
-/// Parámetros:
-/// - `weights`: Arreglo con los pesos de cada ítem disponible.
-/// - `values`: Arreglo con los valores económicos o beneficios de cada ítem.
-/// - `capacity`: Capacidad máxima de carga en peso de la mochila.
-///
-/// Retorno:
-/// - `Int`: El valor monetario o beneficio total máximo alcanzable sin exceder la capacidad.
-///
-/// Complejidad:
-/// - Tiempo: O(n * W), donde n es el número de ítems y W es la capacidad.
-/// - Espacio: O(W), gracias a la compresión de la tabla DP en un único arreglo recorrido en reversa.
-export fn knapsack01(weights: []Int, values: []Int, capacity: Int): Int => {
+export fn fibonacci(n: Int): Int => Fibonacci(n);
+
+/// Knapsack01 resuelve el problema de la mochila 0/1 con tabla comprimida unidimensional.
+export fn Knapsack01(weights: []Int, values: []Int, capacity: Int): Int => {
   let mut dp: []Int = [];
   let mut w = 0;
   while w <= capacity {
@@ -77,7 +46,8 @@ export fn knapsack01(weights: []Int, values: []Int, capacity: Int): Int => {
   }
 
   let mut i = 0;
-  while i < weights.length {
+  let numItems = len(weights);
+  while i < numItems {
     let itemWeight = weights[i];
     let itemVal = values[i];
     let mut cap = capacity;
@@ -96,26 +66,12 @@ export fn knapsack01(weights: []Int, values: []Int, capacity: Int): Int => {
   return dp[capacity];
 };
 
-/// 3. Subsecuencia Común Más Larga (Longest Common Subsequence - LCS)
-/// Encuentra la longitud de la subsecuencia más larga compartida entre dos cadenas
-/// de texto mediante programación dinámica tabular 2D.
-///
-/// Una subsecuencia es una secuencia generada omitiendo cero o más caracteres sin alterar
-/// el orden relativo de los caracteres restantes.
-///
-/// Parámetros:
-/// - `s1`: Primera cadena de texto (longitud m).
-/// - `s2`: Segunda cadena de texto (longitud n).
-///
-/// Retorno:
-/// - `Int`: Longitud de la subsecuencia común más larga compartida por ambas cadenas.
-///
-/// Complejidad:
-/// - Tiempo: O(m * n), donde m y n son las longitudes de las cadenas.
-/// - Espacio: O(m * n), representados linealmente en un arreglo de tamaño (m + 1) * (n + 1).
-export fn longestCommonSubsequence(s1: String, s2: String): Int => {
-  let m = s1.length;
-  let n = s2.length;
+export fn knapsack01(weights: []Int, values: []Int, capacity: Int): Int => Knapsack01(weights, values, capacity);
+
+/// LongestCommonSubsequence calcula la longitud de la subsecuencia común más larga (LCS).
+export fn LongestCommonSubsequence(s1: String, s2: String): Int => {
+  let m = len(s1);
+  let n = len(s2);
   let totalCells = (m + 1) * (n + 1);
 
   let mut dp: []Int = [];
@@ -153,24 +109,10 @@ export fn longestCommonSubsequence(s1: String, s2: String): Int => {
   return dp[resIdx];
 };
 
-/// 4. Mínima Cantidad de Monedas para Cambio (Coin Change Problem)
-/// Resuelve el problema del cambio mínimo de monedas usando programación dinámica bottom-up.
-///
-/// Determina la cantidad mínima de monedas necesarias para sumar un monto exacto,
-/// asumiendo suministro infinito de cada denominación disponible.
-///
-/// Parámetros:
-/// - `coins`: Arreglo con las denominaciones de monedas disponibles (enteros positivos).
-/// - `amount`: Monto total objetivo que se desea componer.
-///
-/// Retorno:
-/// - `Int`: Número mínimo de monedas necesarias para formar el monto exacto, o `-1`
-///          si la combinación no es alcanzable con las denominaciones dadas.
-///
-/// Complejidad:
-/// - Tiempo: O(amount * k), donde k es la cantidad de tipos de monedas.
-/// - Espacio: O(amount), tamaño de la tabla de memorización tabular.
-export fn minCoinChange(coins: []Int, amount: Int): Int => {
+export fn longestCommonSubsequence(s1: String, s2: String): Int => LongestCommonSubsequence(s1, s2);
+
+/// MinCoinChange determina el número mínimo de monedas para sumar un monto exacto.
+export fn MinCoinChange(coins: []Int, amount: Int): Int => {
   if amount <= 0 {
     return 0;
   }
@@ -185,9 +127,10 @@ export fn minCoinChange(coins: []Int, amount: Int): Int => {
   dp[0] = 0;
 
   let mut i = 1;
+  let numCoins = len(coins);
   while i <= amount {
     let mut c = 0;
-    while c < coins.length {
+    while c < numCoins {
       let coin = coins[c];
       if coin <= i {
         let prev = dp[i - coin];
@@ -209,24 +152,12 @@ export fn minCoinChange(coins: []Int, amount: Int): Int => {
   return dp[amount];
 };
 
-/// 5. Algoritmo de Kadane: Suma Máxima de Subarreglo Contiguo
-/// Encuentra la suma máxima posible en cualquier subarreglo contiguo no vacío
-/// dentro de una secuencia de enteros.
-///
-/// Mantiene en cada paso la máxima suma local acumulada que termina en la posición actual,
-/// actualizando la mejor suma global encontrada en tiempo lineal y memoria constante.
-///
-/// Parámetros:
-/// - `arr`: Arreglo de números enteros (puede incluir valores negativos y positivos).
-///
-/// Retorno:
-/// - `Int`: La mayor suma obtenible sumando elementos contiguos. Retorna 0 si el arreglo está vacío.
-///
-/// Complejidad:
-/// - Tiempo: O(n), donde n es la longitud del arreglo.
-/// - Espacio: O(1), memoria auxiliar constante.
-export fn maxSubarraySum(arr: []Int): Int => {
-  if arr.length == 0 {
+export fn minCoinChange(coins: []Int, amount: Int): Int => MinCoinChange(coins, amount);
+
+/// MaxSubarraySum implementa el algoritmo de Kadane para la suma máxima de un subarreglo contiguo.
+export fn MaxSubarraySum(arr: []Int): Int => {
+  let count = len(arr);
+  if count == 0 {
     return 0;
   }
 
@@ -234,7 +165,7 @@ export fn maxSubarraySum(arr: []Int): Int => {
   let mut currentMax = arr[0];
   let mut i = 1;
 
-  while i < arr.length {
+  while i < count {
     let val = arr[i];
     let sum = currentMax + val;
     currentMax = if val > sum { val } else { sum };
@@ -247,3 +178,5 @@ export fn maxSubarraySum(arr: []Int): Int => {
 
   return maxSoFar;
 };
+
+export fn maxSubarraySum(arr: []Int): Int => MaxSubarraySum(arr);

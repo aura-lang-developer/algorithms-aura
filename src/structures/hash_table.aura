@@ -1,60 +1,53 @@
 // ==============================================================================
-// Algoritmos y Estructuras en Aura Lang
-// src/structures/hash_table.aura - Tabla Hash con Encadenamiento Separado (Chaining)
+// Algoritmos y Estructuras en Aura Lang (Estilo Golang v2.0)
+// src/structures/hash_table.aura - Tabla Hash con Encadenamiento (Go Style)
+// ==============================================================================
+// Principios Golang aplicados:
+//   - Interfaz estructural `Map` (Duck Typing).
+//   - Structs idiomáticos `HashEntry`, `HashBucket` y `HashTable`.
+//   - Métodos con receptor (`fn (ht: HashTable) Put(...)`).
+//   - Constructor canónico `NewHashTable(bucketCount: Int)`.
+//   - Manejo explícito de errores con `Result<String, String>`.
+//   - Wrappers funcionales para total compatibilidad hacia atrás.
 // ==============================================================================
 
-/// Representa una entrada individual clave-valor dentro de la tabla hash.
-///
-/// Campos:
-///   - `key`: Cadena identificadora única de la entrada (`String`).
-///   - `value`: Valor textual asociado (`String`).
-export type HashEntry = {
+/// Interfaz estructural común para mapas asociativos clave-valor.
+export interface MapInterface {
+  Put(key: String, value: String): Unit;
+  Get(key: String): Result<String, String>;
+  Contains(key: String): Bool;
+  Delete(key: String): Bool;
+  Keys(): []String;
+  IsEmpty(): Bool;
+  Len(): Int;
+}
+
+/// Representa una entrada individual clave-valor.
+export struct HashEntry {
   key: String,
   value: String,
 };
 
-/// Representa un casillero o "bucket" de la tabla hash.
-///
-/// Contiene un slice de entradas para resolver posibles colisiones de hash
-/// mediante encadenamiento separado (*Separate Chaining*).
-///
-/// Campos:
-///   - `entries`: Colección de entradas asignadas a este bucket (`[]HashEntry`).
-export type HashBucket = {
+/// Representa un casillero o "bucket" con encadenamiento separado.
+export struct HashBucket {
   entries: []HashEntry,
 };
 
-/// Estructura de Tabla Hash con direccionamiento por buckets y encadenamiento.
-///
-/// Campos:
-///   - `buckets`: Slice con todos los casilleros de la tabla (`[]HashBucket`).
-///   - `bucketCount`: Capacidad total de casilleros disponibles.
-///   - `size`: Cantidad total de entradas actualmente almacenadas.
-export type HashTable = {
+/// Estructura de Tabla Hash con direccionamiento por buckets.
+export struct HashTable {
+  __aura_type: String,
   buckets: []HashBucket,
   bucketCount: Int,
   size: Int,
 };
 
-/// Calcula un valor hash entero determinista para una cadena de texto.
-///
-/// Implementa una función hash polinomial basada en el esquema de Horner
-/// con base multiplicativa prima (31) para dispersión uniforme.
-///
-/// Parámetros:
-///   - `key`: Cadena de texto a procesar (`String`).
-///   - `cap`: Módulo de capacidad para acotar el índice resultante (`Int`).
-///
-/// Retorno:
-///   - `Int`: Índice entero en el rango `[0, cap - 1]`.
-///
-/// Complejidad:
-///   - Temporal: O(k) donde k es la longitud de la cadena
-///   - Espacial: O(1)
-export fn hashKey(key: String, cap: Int): Int => {
+/// HashKey calcula un valor hash entero determinista para una clave textual.
+export fn HashKey(key: String, cap: Int): Int => {
   let mut hash = 0;
   let mut i = 0;
-  while i < key.length {
+  let keyLen = len(key);
+
+  while i < keyLen {
     let c = key[i];
     let mut weight = 7;
     if c == "a" || c == "A" { weight = 1; }
@@ -95,18 +88,10 @@ export fn hashKey(key: String, cap: Int): Int => {
   return hash;
 };
 
-/// Crea e inicializa una nueva instancia de `HashTable` con la cantidad de casilleros indicada.
-///
-/// Parámetros:
-///   - `initBuckets`: Cantidad inicial de casilleros sugerida (mínimo 4, por defecto 16).
-///
-/// Retorno:
-///   - `HashTable`: Nueva estructura con los buckets preasignados y vacíos.
-///
-/// Complejidad:
-///   - Temporal: O(initBuckets)
-///   - Espacial: O(initBuckets)
-export fn newHashTable(initBuckets: Int): HashTable => {
+export fn hashKey(key: String, cap: Int): Int => HashKey(key, cap);
+
+/// Constructor canónico estilo Go para inicializar una nueva `HashTable`.
+export fn NewHashTable(initBuckets: Int): HashTable => {
   let effectiveCap = if initBuckets < 4 { 16 } else { initBuckets };
   let mut buckets: []HashBucket = [];
   let mut i = 0;
@@ -116,35 +101,36 @@ export fn newHashTable(initBuckets: Int): HashTable => {
     buckets.push(b);
     i = i + 1;
   }
-  return {
+  {
+    __aura_type: "HashTable",
     buckets: buckets,
     bucketCount: effectiveCap,
     size: 0,
-  };
+  }
 };
 
-/// Inserta o actualiza una pareja clave-valor en la tabla hash.
-///
-/// Si la clave ya existe, su valor anterior se sobreescribe con el nuevo.
-///
-/// Parámetros:
-///   - `ht`: Referencia a la tabla `HashTable`.
-///   - `key`: Cadena identificadora (`String`).
-///   - `value`: Valor textual que se asociará a la clave (`String`).
-///
-/// Retorno:
-///   - `Unit`: Retorna `()` tras insertar o actualizar.
-///
-/// Complejidad:
-///   - Temporal: O(1) en promedio, O(n) en el peor caso de colisiones múltiples
-///   - Espacial: O(1)
-export fn put(ht: HashTable, key: String, value: String): Unit => {
-  let bucketIdx = hashKey(key, ht.bucketCount);
+export fn newHashTable(initBuckets: Int): HashTable => NewHashTable(initBuckets);
+
+// --- Métodos con Receptor para HashTable ---
+
+/// Len retorna la cantidad total de pares clave-valor almacenados.
+fn (ht: HashTable) Len(): Int => {
+  return ht.size;
+}
+
+/// IsEmpty verifica si la tabla hash no contiene entradas.
+fn (ht: HashTable) IsEmpty(): Bool => {
+  return ht.size == 0;
+}
+
+/// Put inserta o actualiza una pareja clave-valor en la tabla hash.
+fn (ht: HashTable) Put(key: String, value: String): Unit => {
+  let bucketIdx = HashKey(key, ht.bucketCount);
   let bucket = ht.buckets[bucketIdx];
 
-  // Verificar si la clave ya existe para actualizarla
   let mut i = 0;
-  while i < bucket.entries.length {
+  let entryCount = len(bucket.entries);
+  while i < entryCount {
     if bucket.entries[i].key == key {
       bucket.entries[i] = { key: key, value: value };
       return;
@@ -156,28 +142,16 @@ export fn put(ht: HashTable, key: String, value: String): Unit => {
   bucket.entries.push(newEntry);
   ht.size = ht.size + 1;
   return;
-};
+}
 
-/// Recupera el valor asociado a una clave específica en la tabla hash.
-///
-/// Parámetros:
-///   - `ht`: Referencia a la tabla `HashTable`.
-///   - `key`: Cadena clave a buscar (`String`).
-///
-/// Retorno:
-///   - `Result<String, String>`:
-///     - `Ok(String)`: El valor almacenado bajo dicha clave.
-///     - `Err(String)`: Mensaje de error si la clave no fue encontrada.
-///
-/// Complejidad:
-///   - Temporal: O(1) en promedio, O(n) peor caso
-///   - Espacial: O(1)
-export fn get(ht: HashTable, key: String): Result<String, String> => {
-  let bucketIdx = hashKey(key, ht.bucketCount);
+/// Get recupera el valor asociado a una clave o retorna `Err(...)` si no existe.
+fn (ht: HashTable) Get(key: String): Result<String, String> => {
+  let bucketIdx = HashKey(key, ht.bucketCount);
   let bucket = ht.buckets[bucketIdx];
 
   let mut i = 0;
-  while i < bucket.entries.length {
+  let entryCount = len(bucket.entries);
+  while i < entryCount {
     if bucket.entries[i].key == key {
       return Ok(bucket.entries[i].value);
     }
@@ -185,50 +159,29 @@ export fn get(ht: HashTable, key: String): Result<String, String> => {
   }
 
   return Err(`Clave no encontrada: '${key}'`);
-};
+}
 
-/// Determina si una clave dada existe actualmente en la tabla hash.
-///
-/// Parámetros:
-///   - `ht`: Referencia a la tabla `HashTable`.
-///   - `key`: Cadena clave a verificar (`String`).
-///
-/// Retorno:
-///   - `Bool`: `true` si la clave está registrada; `false` en caso contrario.
-///
-/// Complejidad:
-///   - Temporal: O(1) promedio, O(n) peor caso
-///   - Espacial: O(1)
-export fn containsKey(ht: HashTable, key: String): Bool => {
-  let res = get(ht, key);
+/// Contains determina si una clave dada existe en la tabla hash.
+fn (ht: HashTable) Contains(key: String): Bool => {
+  let res = ht.Get(key);
   match res {
     Ok(_) => true,
     Err(_) => false,
   }
-};
+}
 
-/// Elimina una clave y su valor asociado de la tabla hash.
-///
-/// Parámetros:
-///   - `ht`: Referencia a la tabla `HashTable`.
-///   - `key`: Cadena clave a remover (`String`).
-///
-/// Retorno:
-///   - `Bool`: `true` si la clave fue encontrada y eliminada; `false` si no existía.
-///
-/// Complejidad:
-///   - Temporal: O(1) promedio, O(n) peor caso
-///   - Espacial: O(1)
-export fn removeKey(ht: HashTable, key: String): Bool => {
-  let bucketIdx = hashKey(key, ht.bucketCount);
+/// Delete elimina una clave y su valor asociado retornando `true` si fue removida.
+fn (ht: HashTable) Delete(key: String): Bool => {
+  let bucketIdx = HashKey(key, ht.bucketCount);
   let bucket = ht.buckets[bucketIdx];
 
   let mut i = 0;
-  while i < bucket.entries.length {
+  let entryCount = len(bucket.entries);
+  while i < entryCount {
     if bucket.entries[i].key == key {
       let mut nextEntries: []HashEntry = [];
       let mut j = 0;
-      while j < bucket.entries.length {
+      while j < entryCount {
         if j != i {
           nextEntries.push(bucket.entries[j]);
         }
@@ -242,30 +195,30 @@ export fn removeKey(ht: HashTable, key: String): Bool => {
   }
 
   return false;
-};
+}
 
-/// Retorna un slice con todas las claves registradas en la tabla hash.
-///
-/// Parámetros:
-///   - `ht`: Referencia a la tabla `HashTable` a consultar.
-///
-/// Retorno:
-///   - `[]String`: Colección con todas las cadenas identificadoras presentes.
-///
-/// Complejidad:
-///   - Temporal: O(bucketCount + size)
-///   - Espacial: O(size)
-export fn getAllKeys(ht: HashTable): []String => {
+/// Keys retorna un slice con todas las claves registradas en la tabla hash.
+fn (ht: HashTable) Keys(): []String => {
   let mut keysList: []String = [];
   let mut bIdx = 0;
-  while bIdx < ht.buckets.length {
+  let numBuckets = len(ht.buckets);
+  while bIdx < numBuckets {
     let bucket = ht.buckets[bIdx];
     let mut eIdx = 0;
-    while eIdx < bucket.entries.length {
+    let numEntries = len(bucket.entries);
+    while eIdx < numEntries {
       keysList.push(bucket.entries[eIdx].key);
       eIdx = eIdx + 1;
     }
     bIdx = bIdx + 1;
   }
   return keysList;
-};
+}
+
+// --- Funciones Wrapper de Compatibilidad hacia atrás ---
+
+export fn put(ht: HashTable, key: String, value: String): Unit => ht.Put(key, value);
+export fn get(ht: HashTable, key: String): Result<String, String> => ht.Get(key);
+export fn containsKey(ht: HashTable, key: String): Bool => ht.Contains(key);
+export fn removeKey(ht: HashTable, key: String): Bool => ht.Delete(key);
+export fn getAllKeys(ht: HashTable): []String => ht.Keys();

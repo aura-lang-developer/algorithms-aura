@@ -5,6 +5,8 @@
 
 import {
   ArrayStack,
+  NewArrayStack,
+  NewStack,
   newArrayStack,
   push,
   pop,
@@ -15,7 +17,9 @@ import {
 } from "../src/structures/stack";
 
 import {
-  Queue,
+  ArrayQueue,
+  NewArrayQueue,
+  NewQueue,
   newQueue,
   enqueue,
   dequeue,
@@ -23,13 +27,16 @@ import {
   isQueueEmpty,
   queueSize,
   CircularBuffer,
+  NewCircularBuffer,
   newCircularBuffer,
   cbEnqueue,
   cbDequeue,
   cbIsFull,
   cbIsEmpty,
   cbSize,
-  Deque,
+  ArrayDeque,
+  NewArrayDeque,
+  NewDeque,
   newDeque,
   pushFront,
   pushBack,
@@ -40,6 +47,7 @@ import {
 
 import {
   SinglyLinkedList,
+  NewSinglyLinkedList,
   newSinglyLinkedList,
   slistPrepend,
   slistAppend,
@@ -58,6 +66,8 @@ import {
 
 import {
   BST,
+  BinarySearchTree,
+  NewBinarySearchTree,
   emptyBST,
   insertBST,
   searchBST,
@@ -70,6 +80,7 @@ import {
 
 import {
   MinHeap,
+  NewMinHeap,
   newMinHeap,
   heapPush,
   heapPop,
@@ -80,6 +91,7 @@ import {
 
 import {
   HashTable,
+  NewHashTable,
   newHashTable,
   put,
   get,
@@ -90,6 +102,7 @@ import {
 
 import {
   Trie,
+  NewTrie,
   newTrie,
   insertWord,
   searchWord,
@@ -98,6 +111,7 @@ import {
 
 import {
   Graph,
+  NewGraph,
   newGraph,
   addVertex,
   addEdge,
@@ -429,14 +443,110 @@ export fn testGraph(): Bool => {
   return true;
 };
 
+/// Test 10: Validación de Estructuras Idiomáticas estilo Golang (New..., Receptores e Interfaces)
+export fn testGolangStyleStructures(): Bool => {
+  // 1. Stack estilo Go
+  let s = NewArrayStack();
+  if !s.IsEmpty() || s.Len() != 0 { return false; }
+  s.Push(10);
+  s.Push(20);
+  if s.Len() != 2 || s.IsEmpty() { return false; }
+  if !isOkWithInt(s.Peek(), 20) { return false; }
+  if !isOkWithInt(s.Pop(), 20) { return false; }
+  if s.Len() != 1 { return false; }
+
+  // 2. Queue estilo Go
+  let q = NewArrayQueue();
+  if !q.IsEmpty() || q.Len() != 0 { return false; }
+  q.Enqueue(100);
+  q.Enqueue(200);
+  if q.Len() != 2 || q.IsEmpty() { return false; }
+  if !isOkWithInt(q.Peek(), 100) { return false; }
+  if !isOkWithInt(q.Dequeue(), 100) { return false; }
+  if q.Len() != 1 { return false; }
+
+  // 3. Deque estilo Go
+  let dq = NewArrayDeque();
+  dq.PushBack(1);
+  dq.PushFront(2);
+  if dq.Len() != 2 { return false; }
+  if !isOkWithInt(dq.PopFront(), 2) { return false; }
+  if !isOkWithInt(dq.PopBack(), 1) { return false; }
+  if dq.Len() != 0 { return false; }
+
+  // 4. CircularBuffer estilo Go
+  let cb = NewCircularBuffer(2);
+  let ok1 = cb.Enqueue(5);
+  let ok2 = cb.Enqueue(10);
+  if !ok1 || !ok2 || !cb.IsFull() { return false; }
+  if !isOkWithInt(cb.Dequeue(), 5) { return false; }
+  if cb.Len() != 1 { return false; }
+
+  // 5. SinglyLinkedList estilo Go
+  let list = NewSinglyLinkedList();
+  list.Append(10);
+  list.Prepend(5);
+  if list.Len() != 2 || !list.Contains(10) { return false; }
+  let sl = list.ToSlice();
+  if len(sl) != 2 || sl[0] != 5 || sl[1] != 10 { return false; }
+  list.Delete(10);
+  if list.Len() != 1 || list.Contains(10) { return false; }
+
+  // 6. BinarySearchTree estilo Go
+  let bst = NewBinarySearchTree();
+  bst.Insert(15);
+  bst.Insert(10);
+  bst.Insert(20);
+  if bst.Len() != 3 || !bst.Search(10) || bst.Search(99) { return false; }
+  if !isOkWithInt(bst.Min(), 10) || !isOkWithInt(bst.Max(), 20) { return false; }
+  let bstSl = bst.InOrder();
+  if len(bstSl) != 3 || bstSl[0] != 10 || bstSl[2] != 20 { return false; }
+
+  // 7. MinHeap estilo Go
+  let heap = NewMinHeap();
+  heap.Push(50);
+  heap.Push(15);
+  heap.Push(30);
+  if heap.Len() != 3 { return false; }
+  if !isOkWithInt(heap.Peek(), 15) { return false; }
+  if !isOkWithInt(heap.Pop(), 15) { return false; }
+  if heap.Len() != 2 { return false; }
+
+  // 8. HashTable estilo Go
+  let ht = NewHashTable(4);
+  ht.Put("lang", "Aura");
+  ht.Put("style", "Golang");
+  if ht.Len() != 2 || !ht.Contains("lang") { return false; }
+  if !isOkWithString(ht.Get("lang"), "Aura") { return false; }
+  let delOk = ht.Delete("style");
+  if !delOk || ht.Contains("style") || ht.Len() != 1 { return false; }
+
+  // 9. Trie estilo Go
+  let tr = NewTrie();
+  tr.Insert("golang");
+  tr.Insert("gopher");
+  if !tr.Search("golang") || !tr.StartsWith("goph") || tr.Search("go") { return false; }
+
+  // 10. Graph estilo Go
+  let g = NewGraph(false);
+  let v1 = g.AddVertex("Go");
+  let v2 = g.AddVertex("Aura");
+  g.AddEdge(v1, v2, 1);
+  if g.VertexCount() != 2 || g.GetDegree(v1) != 1 { return false; }
+  let gNeighbors = g.GetNeighbors(v1);
+  if len(gNeighbors) != 1 || gNeighbors[0] != v2 { return false; }
+
+  return true;
+};
+
 /// Ejecutor principal de la suite de pruebas unitarias para todas las estructuras de datos.
-/// Ejecuta secuencialmente los 9 conjuntos de pruebas e imprime los resultados por consola.
+/// Ejecuta secuencialmente los 10 conjuntos de pruebas e imprime los resultados por consola.
 ///
 /// Retorno:
-/// - `Bool`: `true` si las 9 pruebas pasaron exitosamente; `false` si alguna falló.
+/// - `Bool`: `true` si las 10 pruebas pasaron exitosamente; `false` si alguna falló.
 export fn runStructuresTestSuite(): Bool => {
   println("=================================================================");
-  println("  SUITE DE PRUEBAS: ESTRUCTURAS DE DATOS EN AURA LANG");
+  println("  SUITE DE PRUEBAS: ESTRUCTURAS DE DATOS EN AURA LANG (GO STYLE)");
   println("=================================================================");
 
   let mut allPassed = true;
@@ -504,9 +614,16 @@ export fn runStructuresTestSuite(): Bool => {
     allPassed = false;
   }
 
+  if testGolangStyleStructures() {
+    println("  [PASS] 10: Paradigma Golang (Constructores New..., Métodos con Receptor)");
+  } else {
+    println("  [FAIL] 10: Paradigma Golang en Estructuras");
+    allPassed = false;
+  }
+
   println("=================================================================");
   if allPassed {
-    println("  ✨ ¡TODAS LAS PRUEBAS DE ESTRUCTURAS PASARON EXITOSAMENTE! (9/9)");
+    println("  ✨ ¡TODAS LAS PRUEBAS DE ESTRUCTURAS PASARON EXITOSAMENTE! (10/10)");
   } else {
     println("  ❌ ALGUNAS PRUEBAS FALLARON.");
   }

@@ -1,11 +1,12 @@
-# ⚡ Algoritmos y Estructuras de Datos en Aura Lang
+# ⚡ Algoritmos y Estructuras de Datos en Aura Lang (Golang Style v0.2.0)
 
-> Implementación canónica, modular y educativa de las principales **estructuras de datos** y **algoritmos fundamentales** en **Aura Lang**, aprovechando las capacidades del lenguaje: tipos algebraicos (ADTs), *pattern matching* exhaustivo, modelo de *slices* estilo Go, colecciones continuas en memoria y tipado estático seguro.
+> Implementación canónica, modular y educativa de las principales **estructuras de datos** y **algoritmos fundamentales** en **Aura Lang**, adoptando el **estilo de desarrollo y arquitectura idiomática de Go (Golang)**: structs con métodos receptores (*receiver methods*), interfaces estructurales (duck-typing), constructores canónicos `New...()`, manejo explícito de errores (`Result<T, String>`), semántica de *slices*, y funciones exportadas en `PascalCase` con compatibilidad retroactiva total.
 
 ---
 
 ## 📋 Tabla de Contenidos
 
+- [Filosofía y Estilo Golang en Aura](#-filosofía-y-estilo-golang-en-aura)
 - [Características Principales](#-características-principales)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Estructuras de Datos Implementadas](#-estructuras-de-datos-implementadas)
@@ -25,17 +26,59 @@
   - [5. Procesamiento de Cadenas (Strings)](#5-procesamiento-de-cadenas-strings)
 - [Tabla Comparativa de Complejidades (Big-O)](#-tabla-comparativa-de-complejidades-big-o)
 - [Guía de Compilación y Ejecución](#-guía-de-compilación-y-ejecución)
-- [Suite de Pruebas Automatizadas](#-suite-de-pruebas-automatizadas)
+- [Suite de Pruebas Automatizadas (16/16 PASS)](#-suite-de-pruebas-automatizadas-1616-pass)
+
+---
+
+## 🐹 Filosofía y Estilo Golang en Aura
+
+En esta versión (`v0.2.0`), el código sigue las convenciones del diseño de software en Go adaptadas a la sintaxis y semántica de Aura Lang:
+
+1. **Constructores canónicos `New...()`**:
+   Cada estructura cuenta con una función de inicialización segura que garantiza un estado inicial consistente:
+   ```aura
+   let stack = NewArrayStack();
+   let queue = NewQueue();
+   let heap  = NewMinHeap();
+   let ht    = NewHashTable(16);
+   ```
+
+2. **Métodos con Receptor (*Receiver Methods*)**:
+   Las operaciones están vinculadas a los structs mediante receptores, permitiendo sintaxis de invocación fluida orientada a objetos ligeros:
+   ```aura
+   stack.Push(42);
+   let elem = stack.Pop();
+   let count = stack.Len();
+   ```
+
+3. **Interfaces Estructurales**:
+   Definición de contratos abstractos (`Stack`, `QueueInterface`, `LinkedList`, `SearchTree`, `PriorityQueue`, `MapInterface`, `PrefixTree`, `GraphInterface`) para desacoplar implementaciones de consumidores.
+
+4. **Manejo Explícito de Errores y Resultados**:
+   Patrón de retorno explícito con `Result<T, String>` (`Ok(val)` / `Err("descripción")`) y `Option<T>` (`Some(val)` / `None`), evitando excepciones silenciosas:
+   ```aura
+   match SearchInts(arr, target) {
+     Ok(idx)  => println("Encontrado en índice: " + idx),
+     Err(msg) => println("Error: " + msg),
+   };
+   ```
+
+5. **Semántica de Slices y Nomenclatura Go**:
+   - Operaciones de longitud con método `.Len()` y función estándar `len(slice)`.
+   - Nombres exportados con capitalización `PascalCase` (`BubbleSort`, `LinearSearch`, `Dijkstra`).
+   - Mantenimiento de envoltorios (*wrappers*) en minúsculas (`stackPush`, `queueEnqueue`, etc.) para compatibilidad total con código preexistente.
+
+6. **Despacho Dinámico Determinista**:
+   Cada struct incorpora una etiqueta interna `__aura_type` para garantizar el despacho de métodos seguro en el runtime generado.
 
 ---
 
 ## 🚀 Características Principales
 
-1. **Pureza Idiomática en Aura Lang**: Código escrito siguiendo las mejores prácticas de Aura, con tipado estático estricto, manejo seguro de errores mediante `Result<T, E>`, constructores semánticos y funciones puras.
-2. **Modelo Híbrido Golang + Rust**: Uso de *slices* nativos `[]T`, desestructuración con *pattern matching*, tipos suma recursivos y métodos explícitos.
-3. **Cero Dependencias Externas**: Implementaciones desde cero de algoritmos clásicos y estructuras sin librerías de terceros.
-4. **Binario Nativo Autónomo**: Compilable a ejecutable independiente mediante `aurac` y `bun build --compile` con tiempo de arranque casi instantáneo.
-5. **Suite de Pruebas Automatizadas al 100%**: 14 tests unitarios integrados que verifican cada invariante algorítmica y estructural.
+1. **100% Aura Lang Nativo**: Tipado estático estricto, pattern matching exhaustivo y compilación a código JavaScript/ES Modules optimizado.
+2. **Cero Dependencias Externas**: Algoritmos y estructuras implementados desde cero.
+3. **Binario Nativo Autónomo**: Compilable a ejecutable independiente mediante `aurac` y `bun build --compile` con tiempo de arranque casi instantáneo.
+4. **16 Pruebas Automatizadas (100% Exitosas)**: Validación rigurosa de invariantes estructurales, algorítmicas y de diseño Go.
 
 ---
 
@@ -43,38 +86,38 @@
 
 ```text
 algorithms-aura/
-├── aura.mod                               # Manifiesto oficial del módulo Aura
-├── README.md                              # Documentación técnica completa
-├── build.sh                               # Script automatizado de compilación y pruebas
-├── Makefile                               # Atajos estándar (make run, make test, etc.)
+├── aura.mod                               # Manifiesto oficial del módulo (v0.2.0)
+├── README.md                              # Documentación técnica completa (estilo Go)
+├── build.sh                               # Script automatizado de compilación, checks y tests
+├── Makefile                               # Atajos estándar (make run, make test, make check)
 │
 ├── src/
-│   ├── main.aura                          # Punto de entrada interactivo con CLI y demos
+│   ├── main.aura                          # Punto de entrada interactivo con CLI y demostraciones
 │   │
-│   ├── structures/                        # 🏛️ Estructuras de Datos
-│   │   ├── stack.aura                     # Pila (LIFO) y validador de paréntesis
-│   │   ├── queue.aura                     # Cola (FIFO), Deque y Búfer Circular
-│   │   ├── linked_list.aura               # Lista enlazada mutable y ADT funcional
-│   │   ├── binary_search_tree.aura        # Árbol BST recursivo y recorridos
-│   │   ├── heap.aura                      # Min-Heap, Cola de Prioridad y HeapSort
-│   │   ├── hash_table.aura                # Tabla Hash con Separate Chaining
-│   │   ├── trie.aura                      # Árbol de Prefijos (Trie)
-│   │   └── graph.aura                     # Grafo ponderado con lista de adyacencia
+│   ├── structures/                        # 🏛️ Estructuras de Datos (Go Style)
+│   │   ├── stack.aura                     # ArrayStack, Stack interface, NewArrayStack, Push/Pop
+│   │   ├── queue.aura                     # Queue, Deque, CircularBuffer, QueueInterface
+│   │   ├── linked_list.aura               # SinglyLinkedList, LinkedList interface, ADT IntList
+│   │   ├── binary_search_tree.aura        # BinarySearchTree, SearchTree interface, recorridos
+│   │   ├── heap.aura                      # MinHeap, PriorityQueue interface, HeapSort
+│   │   ├── hash_table.aura                # HashTable, MapInterface, Chaining, HashKey
+│   │   ├── trie.aura                      # Trie, PrefixTree interface, StartsWith
+│   │   └── graph.aura                     # Graph, GraphInterface, lista de adyacencia
 │   │
-│   └── algorithms/                        # ⚡ Algoritmos Fundamentales
-│       ├── sorting.aura                   # Bubble, Selection, Insertion, Merge, Quick
-│       ├── searching.aura                 # Linear, Binary, Jump, Ternary, Duplicados
+│   └── algorithms/                        # ⚡ Algoritmos Fundamentales (Go Style)
+│       ├── sorting.aura                   # Bubble, Selection, Insertion, Merge, Quick + SortStats
+│       ├── searching.aura                 # Linear, Binary, Jump, Ternary, Duplicados, SearchInts
 │       ├── graphs.aura                    # BFS, DFS, Dijkstra, Conectividad
 │       ├── dynamic_programming.aura       # Fibonacci, Mochila 0/1, LCS, Coins, Kadane
 │       └── strings.aura                   # Naive, Rabin-Karp, Palíndromo, Levenshtein
 │
 ├── tests/                                 # 🧪 Suites de Pruebas Unitarias
-│   ├── test_structures.aura               # 9 tests para estructuras de datos
-│   ├── test_algorithms.aura               # 5 tests para familias de algoritmos
-│   └── test_all.aura                      # Ejecutor global unificado (14/14 tests)
+│   ├── test_structures.aura               # 10 tests de estructuras de datos (inc. Go paradigm)
+│   ├── test_algorithms.aura               # 6 tests de familias de algoritmos (inc. Go paradigm)
+│   └── test_all.aura                      # Ejecutor unificado (16/16 pruebas exitosas)
 │
 └── bin/
-    └── algorithms-aura                    # Ejecutable binario nativo compilado
+    └── algorithms-aura                    # Ejecutable binario nativo compilado (Mach-O)
 ```
 
 ---
@@ -83,54 +126,62 @@ algorithms-aura/
 
 ### 1. Pila (Stack LIFO)
 - **Archivo**: `src/structures/stack.aura`
-- **Operaciones**: `push`, `pop`, `peek`, `isEmpty`, `stackSize`, `clear`.
-- **Aplicación Práctica**: `isBalancedParentheses(expr)` para validación de sintaxis de corchetes, llaves y paréntesis balanceados.
-- **Complejidad**: $O(1)$ en todas las operaciones clave.
+- **Tipos e Interfaces**: `struct ArrayStack`, `interface Stack`.
+- **Constructor**: `NewArrayStack() -> ArrayStack`, `NewStack() -> ArrayStack`.
+- **Métodos**: `s.Push(val)`, `s.Pop() -> Option<Int>`, `s.Peek() -> Option<Int>`, `s.Len() -> Int`, `s.IsEmpty() -> Bool`, `s.Clear()`.
+- **Aplicación Práctica**: `IsBalancedParentheses(expr)` para validación de sintaxis `()`, `[]`, `{}`.
+- **Complejidad**: $O(1)$ amortizado en todas las operaciones clave.
 
 ### 2. Cola (Queue FIFO), Deque y Búfer Circular
 - **Archivo**: `src/structures/queue.aura`
-- **Variantes**:
-  - `Queue`: Cola FIFO estándar con compactación amortizada.
-  - `CircularBuffer`: Búfer de anillo con capacidad acotada en tiempo real.
-  - `Deque`: Cola de doble extremo (`pushFront`, `pushBack`, `popFront`, `popBack`).
+- **Tipos e Interfaces**: `struct Queue`, `struct Deque`, `struct CircularBuffer`, `interface QueueInterface`, `interface DequeInterface`.
+- **Constructores**: `NewQueue()`, `NewDeque()`, `NewCircularBuffer(cap)`.
+- **Métodos**:
+  - `Queue`: `q.Enqueue(val)`, `q.Dequeue() -> Option<Int>`, `q.Peek() -> Option<Int>`, `q.Len()`, `q.IsEmpty()`.
+  - `Deque`: `d.PushFront(val)`, `d.PushBack(val)`, `d.PopFront()`, `d.PopBack()`, `d.Len()`.
+  - `CircularBuffer`: `cb.Write(val) -> Bool`, `cb.Read() -> Option<Int>`, `cb.IsFull()`, `cb.IsEmpty()`.
 - **Complejidad**: $O(1)$ inserción y extracción.
 
 ### 3. Lista Simplemente Enlazada y Lista ADT Funcional
 - **Archivo**: `src/structures/linked_list.aura`
-- **Variantes**:
-  - `SinglyLinkedList`: Basada en un pool contiguo de nodos en memoria con punteros a índices, permitiendo `slistAppend`, `slistPrepend`, `slistDelete`, `slistReverse` e iteración.
-  - `IntList`: Tipo Suma Algebraico funcional (`Nil | Cons { head, tail }`) con funciones puras `listLength`, `listSum` y `adtListContains`.
+- **Tipos e Interfaces**: `struct SinglyLinkedList`, `struct ListNode`, `interface LinkedList`, `type IntList = Nil | Cons`.
+- **Constructores**: `NewSinglyLinkedList()`.
+- **Métodos**: `l.Prepend(val)`, `l.Append(val)`, `l.ToSlice() -> []Int`, `l.Contains(val) -> Bool`, `l.Delete(val) -> Bool`, `l.Reverse()`, `l.Len()`.
+- **Variante Funcional**: ADT recursivo con `cons(head, tail)`, `listLength(l)`, `listSum(l)`, `adtListContains(l, val)`.
 
 ### 4. Árbol Binario de Búsqueda (BST)
 - **Archivo**: `src/structures/binary_search_tree.aura`
-- **Representación**: Tipo Suma recursivo `Empty | Node { value, left, right }`.
-- **Operaciones**:
-  - Inserción y Búsqueda logarítmica.
-  - Cálculo de Mínimo (`findMinBST`) y Máximo (`findMaxBST`).
-  - Cálculo de Altura y Conteo total de nodos.
-  - Recorridos: **In-Order** (ascendente), **Pre-Order** y **Post-Order**.
-  - Eliminación de nodos con reemplazo por sucesor in-order.
+- **Tipos e Interfaces**: `struct BinarySearchTree`, `interface SearchTree`, `type BST = Empty | Node`.
+- **Constructor**: `NewBinarySearchTree()`.
+- **Métodos**: `t.Insert(val)`, `t.Search(val) -> Bool`, `t.Min() -> Option<Int>`, `t.Max() -> Option<Int>`, `t.InOrder() -> []Int`, `t.Len()`.
+- **Recorridos Libres**: `inOrder(tree)`, `preOrder(tree)`, `postOrder(tree)`, `treeHeight(tree)`.
 
 ### 5. Montículo Binario (Min-Heap) y HeapSort
 - **Archivo**: `src/structures/heap.aura`
-- **Operaciones**: `heapPush`, `heapPop`, `heapPeek`, `buildMinHeap` en $O(n)$ usando *sift-down*.
-- **Algoritmo Derivado**: `heapSort(arr)` con garantía temporal estricta de $O(n \log n)$ y $O(n)$ espacio.
+- **Tipos e Interfaces**: `struct MinHeap`, `interface PriorityQueue`.
+- **Constructor**: `NewMinHeap()`.
+- **Métodos**: `h.Push(val)`, `h.Pop() -> Option<Int>`, `h.Peek() -> Option<Int>`, `h.Len() -> Int`, `h.IsEmpty() -> Bool`.
+- **Algoritmo Derivado**: `HeapSort(arr: []Int) -> []Int` con garantía temporal estricta de $O(n \log n)$ usando *sift-down*.
 
 ### 6. Tabla Hash con Encadenamiento (Separate Chaining)
 - **Archivo**: `src/structures/hash_table.aura`
-- **Diseño**: Arreglo de *buckets* con resolución de colisiones por lista de entradas contiguas.
-- **Función Hash**: Hash polinomial de Horner con multiplicador primo (31).
-- **Operaciones**: `put(key, val)`, `get(key)`, `containsKey(key)`, `removeKey(key)`, `getAllKeys()`.
+- **Tipos e Interfaces**: `struct HashTable`, `struct HashEntry`, `struct HashBucket`, `interface MapInterface`.
+- **Constructor**: `NewHashTable(cap: Int)`.
+- **Métodos**: `ht.Put(key, val)`, `ht.Get(key) -> Option<String>`, `ht.Contains(key) -> Bool`, `ht.Delete(key) -> Bool`, `ht.Keys() -> []String`, `ht.Len() -> Int`.
+- **Función Hash**: `HashKey(key, cap)` (algoritmo polinomial con primo 31).
 
 ### 7. Árbol de Prefijos (Trie)
 - **Archivo**: `src/structures/trie.aura`
-- **Diseño**: Pool de nodos caracter-a-caracter con bandera booleana `isEndOfWord`.
-- **Operaciones**: Inserción de palabras en $O(L)$, búsqueda exacta en $O(L)$ y verificación de prefijos con `startsWith(prefix)` en $O(L)$ donde $L$ es la longitud de la cadena.
+- **Tipos e Interfaces**: `struct Trie`, `struct TrieNode`, `interface PrefixTree`.
+- **Constructor**: `NewTrie()`.
+- **Métodos**: `t.Insert(word)`, `t.Search(word) -> Bool`, `t.StartsWith(prefix) -> Bool`, `t.Len() -> Int`.
+- **Complejidad**: $O(L)$ para inserción y búsqueda, donde $L$ es la longitud de la cadena.
 
 ### 8. Grafo con Lista de Adyacencia
 - **Archivo**: `src/structures/graph.aura`
-- **Diseño**: Conjunto de vértices indexados con listas de aristas dirigidas o bidireccionales con peso numérico.
-- **Operaciones**: `addVertex`, `addEdge`, `getNeighbors`, `getDegree`.
+- **Tipos e Interfaces**: `struct Graph`, `struct GraphEdge`, `struct GraphVertex`, `interface GraphInterface`.
+- **Constructor**: `NewGraph()`.
+- **Métodos**: `g.AddVertex(id, name) -> Int`, `g.AddEdge(u, v, weight, bidirectional)`, `g.GetNeighbors(u) -> []Int`, `g.GetDegree(u) -> Int`, `g.VertexCount() -> Int`.
 
 ---
 
@@ -138,48 +189,51 @@ algorithms-aura/
 
 ### 1. Algoritmos de Ordenamiento (Sorting)
 - **Archivo**: `src/algorithms/sorting.aura`
-- **Algoritmos**:
-  1. **Bubble Sort**: Burbujeo con corte temprano si no ocurren intercambios.
-  2. **Selection Sort**: Selección del mínimo en cada pasada.
-  3. **Insertion Sort**: Inserción en sub-arreglo ordenado ($O(n)$ en mejor caso).
-  4. **Merge Sort**: Divide y vencerás recursivo estable con función `merge`.
-  5. **Quick Sort**: Particionado *in-place* con pivote terminal.
+- **Estructura de Diagnóstico**: `struct SortStats` con método `stats.Summary() -> String`.
+- **Algoritmos Idiomáticos**:
+  - `BubbleSort(arr)`: Con bandera de corte temprano.
+  - `SelectionSort(arr)`: Selección mínima iterativa.
+  - `InsertionSort(arr)`: Inserción en subarreglo ordenado ($O(n)$ en mejor caso).
+  - `MergeSort(arr)`: Divide y vencerás recursivo estable.
+  - `QuickSort(arr)`: Particionado eficiente en sub-bloques.
+  - `IsSorted(arr)`: Verificación de invariante en tiempo lineal $O(n)$.
 
 ### 2. Algoritmos de Búsqueda (Searching)
 - **Archivo**: `src/algorithms/searching.aura`
-- **Algoritmos**:
-  1. **Linear Search**: $O(n)$ sobre colecciones desordenadas.
-  2. **Binary Search**: $O(\log n)$ iterativo sobre colecciones ordenadas.
-  3. **Jump Search**: $O(\sqrt{n})$ saltando por bloques de tamaño $\lfloor\sqrt{n}\rfloor$.
-  4. **Ternary Search**: $O(\log_3 n)$ dividiendo el espacio en tres tercios.
-  5. **Búsqueda de Rangos**: `findFirstOccurrence` y `findLastOccurrence` para encontrar límites en arreglos con duplicados.
+- **Algoritmos Idiomáticos**:
+  - `LinearSearch(arr, target) -> Int`: Búsqueda secuencial.
+  - `BinarySearch(arr, target) -> Int`: Búsqueda binaria iterativa.
+  - `JumpSearch(arr, target) -> Int`: Búsqueda por saltos en bloques de $\lfloor\sqrt{n}\rfloor$.
+  - `TernarySearch(arr, target) -> Int`: Particionado en tercios logarítmicos.
+  - `FindFirstOccurrence(arr, target) -> Int` y `FindLastOccurrence(arr, target) -> Int`: Búsqueda de bordes en arreglos con duplicados.
+  - `SearchInts(arr, target) -> Result<Int, String>`: Retorno idiomático de error cuando el elemento no existe.
 
 ### 3. Algoritmos de Grafos (BFS, DFS, Dijkstra)
 - **Archivo**: `src/algorithms/graphs.aura`
 - **Algoritmos**:
-  1. **BFS (Breadth-First Search)**: Exploración por niveles con cola FIFO.
-  2. **DFS (Depth-First Search)**: Exploración en profundidad exhaustiva con recursión.
-  3. **Dijkstra**: Camino más corto desde un nodo origen a todos los demás vértices en grafos con pesos no negativos.
-  4. **Conectividad**: Verificación de alcanzabilidad global mediante recorrido BFS.
+  - `BFS(graph, start) -> []Int`: Exploración en anchura por niveles.
+  - `DFS(graph, start) -> []Int`: Exploración en profundidad exhaustiva.
+  - `Dijkstra(graph, start) -> []Int`: Caminos más cortos para pesos no negativos.
+  - `IsConnected(graph) -> Bool`: Verificación de alcanzabilidad global.
 
 ### 4. Programación Dinámica (Dynamic Programming)
 - **Archivo**: `src/algorithms/dynamic_programming.aura`
 - **Problemas Clásicos**:
-  1. **Fibonacci Tabulado**: Cálculo en $O(n)$ tiempo y $O(1)$ memoria.
-  2. **Problema de la Mochila 0/1 (Knapsack)**: Selección óptima de elementos con pesos y valores para maximizar ganancia en $O(n \cdot W)$ tiempo y $O(W)$ espacio.
-  3. **Subsecuencia Común Más Larga (LCS)**: Determinación de la longitud de coincidencia entre dos cadenas.
-  4. **Cambio de Monedas (Coin Change)**: Mínima cantidad de monedas para alcanzar un valor dado.
-  5. **Algoritmo de Kadane**: Suma máxima en un subarreglo continuo en tiempo lineal $O(n)$ y espacio $O(1)$.
+  - `Fibonacci(n: Int) -> Int`: Cálculo en $O(n)$ tiempo y $O(1)$ memoria.
+  - `Knapsack01(weights, values, capacity) -> Int`: Selección óptima con programación dinámica.
+  - `LongestCommonSubsequence(text1, text2) -> Int`: Longitud de subsecuencia común más larga (LCS).
+  - `MinCoinChange(coins, amount) -> Int`: Mínimo número de monedas para alcanzar un monto.
+  - `MaxSubarraySum(arr) -> Int`: Algoritmo lineal de Kadane en $O(n)$ tiempo y $O(1)$ espacio.
 
 ### 5. Procesamiento de Cadenas (Strings)
 - **Archivo**: `src/algorithms/strings.aura`
 - **Algoritmos**:
-  1. **Naive Pattern Search**: Búsqueda por ventana deslizante directa.
-  2. **Rabin-Karp Search**: Búsqueda por hash rodante (*rolling hash*) con reducción de colisiones.
-  3. **Verificación de Palíndromo**: Técnica de dos punteros en tiempo $O(n)$ y espacio $O(1)$.
-  4. **Detección de Anagramas**: Comparación de histogramas de frecuencias de caracteres en $O(n)$.
-  5. **Inversión de Cadena**: Reversión de caracteres.
-  6. **Distancia de Levenshtein**: Matriz de edición para contar mínimas sustituciones, inserciones o borrados necesarios.
+  - `NaivePatternSearch(text, pattern) -> []Int`: Búsqueda de coincidencia por ventana deslizante.
+  - `RabinKarpSearch(text, pattern) -> []Int`: Búsqueda por rolling hash polinomial.
+  - `IsPalindrome(s) -> Bool`: Técnica de dos punteros en $O(n)$ tiempo y $O(1)$ espacio.
+  - `IsAnagram(s1, s2) -> Bool`: Comparación de frecuencias de caracteres.
+  - `ReverseString(s) -> String`: Inversión de caracteres.
+  - `LevenshteinDistance(s1, s2) -> Int`: Matriz de operaciones de edición mínima.
 
 ---
 
@@ -220,46 +274,53 @@ algorithms-aura/
 ### Prerrequisitos
 
 - **Compilador de Aura (`aurac`)**: Disponible en el PATH o en `~/.cargo/bin/aurac`.
-- **Bun** (Opcional, para empaquetado nativo): `~/.bun/bin/bun`.
+- **Bun** (para empaquetado del binario autónomo): `~/.bun/bin/bun`.
 
-### Comandos Rápidos
+### Comandos de Construcción (`./build.sh`)
 
 ```bash
-# 1. Ejecución directa del CLI y demostraciones con aurac
-aurac run src/main.aura
+# 1. Validación estática de tipos en todos los módulos (sin compilar)
+./build.sh check
 
-# 2. Ejecutar la suite global de 14 pruebas automatizadas
-aurac run tests/test_all.aura
+# 2. Ejecutar la suite completa de pruebas unitarias (16/16 tests)
+./build.sh test
 
-# 3. Compilación a binario nativo independiente
+# 3. Compilar a JavaScript/ESM y empaquetar binario nativo independiente
 ./build.sh build
 
-# 4. Ejecución del binario nativo compilado
-./bin/algorithms-aura
-
-# 5. Verificación estática de tipos en todos los módulos
-./build.sh check
+# 4. Ejecutar la demostración interactiva
+./build.sh run
 ```
 
-### Uso con Makefile
+### Ejecución Directa con `aurac`
 
 ```bash
-make          # Compila el binario independiente
-make run      # Ejecuta la demostración interactiva
-make test     # Corre la suite de pruebas completa
-make check    # Valida el sistema de tipos de todos los archivos
-make clean    # Limpia artefactos generados (dist/ y bin/)
+# Demostración interactiva CLI
+aurac run src/main.aura
+
+# Suite completa de pruebas
+aurac run tests/test_all.aura
+```
+
+### Atajos con Makefile
+
+```bash
+make          # Compila el binario independiente (./bin/algorithms-aura)
+make test     # Ejecuta la suite de pruebas unitarias completa
+make check    # Valida el sistema de tipos estático
+make run      # Ejecuta la demostración del CLI
+make clean    # Limpia directorios generados (dist/ y bin/)
 ```
 
 ---
 
-## 🧪 Suite de Pruebas Automatizadas
+## 🧪 Suite de Pruebas Automatizadas (16/16 PASS)
 
-El proyecto incluye dos suites completas con **14 pruebas automatizadas**:
+El proyecto incluye dos suites con **16 pruebas unitarias rigurosas**:
 
 ```text
 =================================================================
-  SUITE DE PRUEBAS: ESTRUCTURAS DE DATOS EN AURA LANG
+  SUITE DE PRUEBAS: ESTRUCTURAS DE DATOS EN AURA LANG (GO STYLE)
 =================================================================
   [PASS] 01: Pila LIFO (ArrayStack) y Verificación de Paréntesis
   [PASS] 02: Cola FIFO (Queue) y Deque de Doble Extremo
@@ -270,17 +331,28 @@ El proyecto incluye dos suites completas con **14 pruebas automatizadas**:
   [PASS] 07: Tabla Hash con Encadenamiento (Separate Chaining)
   [PASS] 08: Árbol de Prefijos (Trie / Prefix Matching)
   [PASS] 09: Grafo con Lista de Adyacencia y Grados
+  [PASS] 10: Paradigma Golang (Constructores New..., Métodos con Receptor)
+=================================================================
+  ✨ ¡TODAS LAS PRUEBAS DE ESTRUCTURAS PASARON EXITOSAMENTE! (10/10)
+=================================================================
 
 =================================================================
-  SUITE DE PRUEBAS: ALGORITMOS FUNDAMENTALES EN AURA LANG
+  SUITE DE PRUEBAS: ALGORITMOS FUNDAMENTALES EN AURA LANG (GO STYLE)
 =================================================================
   [PASS] 01: Algoritmos de Ordenamiento (Bubble, Selection, Insert, Merge, Quick)
   [PASS] 02: Algoritmos de Búsqueda (Linear, Binary, Jump, Ternary, Dups)
   [PASS] 03: Algoritmos de Grafos (BFS, DFS, Dijkstra, Conectividad)
   [PASS] 04: Programación Dinámica (Fibonacci, Knapsack, LCS, Coins, Kadane)
   [PASS] 05: Procesamiento de Cadenas (Naive, Rabin-Karp, Palindrome, Levenshtein)
+  [PASS] 06: Paradigma Golang (PascalCase, Slices y Struct de Métricas)
+=================================================================
+  ✨ ¡TODAS LAS PRUEBAS DE ALGORITMOS PASARON EXITOSAMENTE! (6/6)
+=================================================================
 
-🏆 RESULTADO FINAL: 14/14 PRUEBAS EXITOSAS (100% PASSED)
+#################################################################
+  🏆 RESULTADO FINAL: 16/16 PRUEBAS EXITOSAS (100% PASSED)
+  ✨ Todas las estructuras y algoritmos cumplen con el estilo Golang.
+#################################################################
 ```
 
 ---
