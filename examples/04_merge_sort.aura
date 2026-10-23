@@ -1,0 +1,9 @@
+import { MergeSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 04: Merge Sort ===");
+  let datos: []Int = [38, 27, 43, 3, 9, 82, 10];
+  println(`Original:  ${datos}`);
+  let ordenado = MergeSort(datos);
+  println(`Ordenado:  ${ordenado}`);
+};

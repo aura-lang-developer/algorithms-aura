@@ -1,0 +1,11 @@
+import { IsAnagram } from "../src/algorithms/strings";
+
+fn main() => {
+  println("=== Ejemplo 44: Detección de Anagramas ===");
+  let a = "roma";
+  let b = "amor";
+  let c = "mora";
+  let d = "ramo";
+  println(`"${a}" y "${b}" son anagramas: ${IsAnagram(a, b)}`);
+  println(`"${c}" y "${d}" son anagramas: ${IsAnagram(c, d)}`);
+};

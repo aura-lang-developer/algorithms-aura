@@ -1,0 +1,9 @@
+import { SelectionSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 02: Selection Sort ===");
+  let datos: []Int = [29, 10, 14, 37, 13];
+  println(`Original:  ${datos}`);
+  let ordenado = SelectionSort(datos);
+  println(`Ordenado:  ${ordenado}`);
+};

@@ -1,0 +1,9 @@
+import { BinarySearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 18: Búsqueda Binaria - Elemento Inexistente ===");
+  let datos: []Int = [2, 4, 6, 8, 10];
+  let objetivo = 5;
+  let idx = BinarySearch(datos, objetivo);
+  println(`Buscando ${objetivo} -> Resultado: ${idx} (indica no encontrado)`);
+};

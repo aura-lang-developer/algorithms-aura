@@ -1,0 +1,8 @@
+import { FindLastOccurrence } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 16: FindLastOccurrence (Última ocurrencia con duplicados) ===");
+  let datos: []Int = [1, 2, 4, 4, 4, 5, 6];
+  let idx = FindLastOccurrence(datos, 4);
+  println(`Última aparición del número 4 en ${datos} -> Índice: ${idx}`);
+};

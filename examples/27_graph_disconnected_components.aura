@@ -1,0 +1,13 @@
+import { NewGraph } from "../src/structures/graph";
+import { IsConnected } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 27: Grafo con Componentes Disconexos ===");
+  let mut g = NewGraph(false);
+  let v0 = g.AddVertex("Isla1");
+  let v1 = g.AddVertex("Isla2");
+  let v2 = g.AddVertex("Continente");
+  g.AddEdge(v2, v0, 5);
+  println(`¿Conexión Continente (${v2}) -> Isla1 (${v0})?: ${IsConnected(g, v2, v0)}`);
+  println(`¿Conexión Isla1 (${v0}) -> Isla2 (${v1})?: ${IsConnected(g, v0, v1)}`);
+};

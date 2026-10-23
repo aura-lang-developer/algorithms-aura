@@ -1,0 +1,13 @@
+import { NewGraph } from "../src/structures/graph";
+import { IsConnected } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 24: Verificación de Conectividad en Grafo ===");
+  let mut g = NewGraph(false);
+  let v0 = g.AddVertex("X");
+  let v1 = g.AddVertex("Y");
+  let v2 = g.AddVertex("Z");
+  g.AddEdge(v0, v1, 1);
+  println(`¿Están conectados ${v0} y ${v1}?: ${IsConnected(g, v0, v1)}`);
+  println(`¿Están conectados ${v0} y ${v2}?: ${IsConnected(g, v0, v2)}`);
+};

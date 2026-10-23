@@ -1,0 +1,10 @@
+import { BinarySearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 19: Búsqueda en Extremos del Arreglo ===");
+  let datos: []Int = [10, 20, 30, 40, 50];
+  let primero = BinarySearch(datos, 10);
+  let ultimo = BinarySearch(datos, 50);
+  println(`Primer elemento (10): índice ${primero}`);
+  println(`Último elemento (50): índice ${ultimo}`);
+};

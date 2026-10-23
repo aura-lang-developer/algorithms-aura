@@ -1,0 +1,16 @@
+import { NewGraph } from "../src/structures/graph";
+import { BFS } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 28: Topología en Estrella ===");
+  let mut g = NewGraph(false);
+  let hub = g.AddVertex("Hub");
+  let n1 = g.AddVertex("Nodo1");
+  let n2 = g.AddVertex("Nodo2");
+  let n3 = g.AddVertex("Nodo3");
+  g.AddEdge(hub, n1, 1);
+  g.AddEdge(hub, n2, 1);
+  g.AddEdge(hub, n3, 1);
+  let visitas = BFS(g, hub);
+  println(`Visitas desde Hub: ${visitas}`);
+};

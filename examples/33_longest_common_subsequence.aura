@@ -1,0 +1,9 @@
+import { LongestCommonSubsequence } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 33: Longest Common Subsequence (LCS) ===");
+  let s1 = "ABCDE";
+  let s2 = "ACE";
+  let lcsLen = LongestCommonSubsequence(s1, s2);
+  println(`LCS entre "${s1}" y "${s2}" -> Longitud: ${lcsLen}`);
+};

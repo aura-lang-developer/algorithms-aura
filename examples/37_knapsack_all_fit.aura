@@ -1,0 +1,10 @@
+import { Knapsack01 } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 37: Mochila donde caben todos los objetos ===");
+  let pesos: []Int = [1, 2, 3];
+  let valores: []Int = [10, 20, 30];
+  let capacidad = 10;
+  let maxVal = Knapsack01(pesos, valores, capacidad);
+  println(`Valor total con capacidad holgada: ${maxVal}`);
+};

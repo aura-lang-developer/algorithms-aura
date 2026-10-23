@@ -1,0 +1,9 @@
+import { NaivePatternSearch } from "../src/algorithms/strings";
+
+fn main() => {
+  println("=== Ejemplo 47: Búsqueda de Patrón Inexistente ===");
+  let texto = "antigravity aura framework";
+  let patron = "python";
+  let pos = NaivePatternSearch(texto, patron);
+  println(`Posiciones para "${patron}": ${pos}`);
+};

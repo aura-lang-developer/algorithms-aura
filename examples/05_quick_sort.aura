@@ -1,0 +1,9 @@
+import { QuickSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 05: Quick Sort ===");
+  let datos: []Int = [10, 80, 30, 90, 40, 50, 70];
+  println(`Original:  ${datos}`);
+  let ordenado = QuickSort(datos);
+  println(`Ordenado:  ${ordenado}`);
+};

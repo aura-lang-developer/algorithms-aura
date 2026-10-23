@@ -1,0 +1,8 @@
+import { SearchInts } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 17: SearchInts (Envoltura Golang style) ===");
+  let datos: []Int = [10, 20, 30, 40, 50];
+  let idx = SearchInts(datos, 30);
+  println(`Índice de 30: ${idx}`);
+};

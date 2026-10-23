@@ -1,0 +1,10 @@
+import { Knapsack01 } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 38: Mochila con capacidad ajustada ===");
+  let pesos: []Int = [10, 20, 30];
+  let valores: []Int = [60, 100, 120];
+  let capacidad = 50;
+  let res = Knapsack01(pesos, valores, capacidad);
+  println(`Resultado para capacidad 50: ${res}`);
+};

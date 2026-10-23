@@ -1,0 +1,9 @@
+import { NewSortStats } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 08: SortStats (Estructura de métricas) ===");
+  let stats = NewSortStats("QuickSort", 100, 50);
+  println(`Algoritmo:     ${stats.algorithm}`);
+  println(`Comparaciones: ${stats.comparisons}`);
+  println(`Intercambios:  ${stats.swaps}`);
+};

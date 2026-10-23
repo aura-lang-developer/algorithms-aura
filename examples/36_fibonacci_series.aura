@@ -1,0 +1,11 @@
+import { Fibonacci } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 36: Serie de Fibonacci para los primeros 8 números ===");
+  let mut i = 0;
+  while i <= 8 {
+    let f = Fibonacci(i);
+    println(`F(${i}) = ${f}`);
+    i = i + 1;
+  }
+};

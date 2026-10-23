@@ -1,0 +1,9 @@
+import { InsertionSort, IsSorted } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 10: Rendimiento de Inserción en Arreglo Ya Ordenado ===");
+  let casiOrdenado: []Int = [1, 2, 3, 4, 6, 5];
+  let resultado = InsertionSort(casiOrdenado);
+  println(`Resultado: ${resultado}`);
+  println(`¿Está ordenado?: ${IsSorted(resultado)}`);
+};

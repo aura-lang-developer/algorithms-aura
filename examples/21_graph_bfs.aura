@@ -1,0 +1,16 @@
+import { NewGraph } from "../src/structures/graph";
+import { BFS } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 21: BFS (Breadth-First Search) en Grafo ===");
+  let mut g = NewGraph(false);
+  let v0 = g.AddVertex("A");
+  let v1 = g.AddVertex("B");
+  let v2 = g.AddVertex("C");
+  let v3 = g.AddVertex("D");
+  g.AddEdge(v0, v1, 1);
+  g.AddEdge(v0, v2, 1);
+  g.AddEdge(v1, v3, 1);
+  let recorrido = BFS(g, v0);
+  println(`Recorrido BFS desde vértice ${v0} (A): ${recorrido}`);
+};

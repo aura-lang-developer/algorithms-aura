@@ -1,0 +1,15 @@
+import { QuickSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 09: Ordenamiento Inverso / Descendente ===");
+  let datos: []Int = [5, 1, 9, 3, 7];
+  let asc = QuickSort(datos);
+  let mut desc: []Int = [];
+  let mut i = asc.length - 1;
+  while i >= 0 {
+    desc.push(asc[i]);
+    i = i - 1;
+  }
+  println(`Ascendente:  ${asc}`);
+  println(`Descendente: ${desc}`);
+};

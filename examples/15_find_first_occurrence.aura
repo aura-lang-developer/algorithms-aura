@@ -1,0 +1,8 @@
+import { FindFirstOccurrence } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 15: FindFirstOccurrence (Primera ocurrencia con duplicados) ===");
+  let datos: []Int = [1, 2, 4, 4, 4, 5, 6];
+  let idx = FindFirstOccurrence(datos, 4);
+  println(`Primera aparición del número 4 en ${datos} -> Índice: ${idx}`);
+};

@@ -1,0 +1,9 @@
+import { BubbleSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 01: Bubble Sort ===");
+  let datos: []Int = [64, 34, 25, 12, 22, 11, 90];
+  println(`Original:  ${datos}`);
+  let ordenado = BubbleSort(datos);
+  println(`Ordenado:  ${ordenado}`);
+};

@@ -1,0 +1,16 @@
+import { NewGraph } from "../src/structures/graph";
+import { DFS } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 29: Topología Lineal con DFS ===");
+  let mut g = NewGraph(false);
+  let v0 = g.AddVertex("V1");
+  let v1 = g.AddVertex("V2");
+  let v2 = g.AddVertex("V3");
+  let v3 = g.AddVertex("V4");
+  g.AddEdge(v0, v1, 2);
+  g.AddEdge(v1, v2, 2);
+  g.AddEdge(v2, v3, 2);
+  let orden = DFS(g, v0);
+  println(`Exploración en profundidad lineal: ${orden}`);
+};

@@ -1,0 +1,9 @@
+import { NaivePatternSearch } from "../src/algorithms/strings";
+
+fn main() => {
+  println("=== Ejemplo 41: Búsqueda Naive de Patrones ===");
+  let texto = "AABAACAADAABAABA";
+  let patron = "AABA";
+  let apariciones = NaivePatternSearch(texto, patron);
+  println(`Patrón "${patron}" encontrado en posiciones: ${apariciones}`);
+};

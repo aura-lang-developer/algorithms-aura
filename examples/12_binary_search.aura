@@ -1,0 +1,9 @@
+import { BinarySearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 12: Binary Search ===");
+  let ordenado: []Int = [11, 22, 33, 44, 55, 66, 77];
+  let objetivo = 44;
+  let idx = BinarySearch(ordenado, objetivo);
+  println(`Buscando ${objetivo} en arreglo ordenado -> Índice: ${idx}`);
+};

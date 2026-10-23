@@ -1,0 +1,15 @@
+import { NewGraph } from "../src/structures/graph";
+import { Dijkstra } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 30: Grafo Triangular - Desvío vs Directo ===");
+  let mut g = NewGraph(false);
+  let inicio = g.AddVertex("Inicio");
+  let inter = g.AddVertex("Intermedio");
+  let fin = g.AddVertex("Fin");
+  g.AddEdge(inicio, inter, 2);
+  g.AddEdge(inter, fin, 3);
+  g.AddEdge(inicio, fin, 10);
+  let dist = Dijkstra(g, inicio, fin);
+  println(`Ruta más económica (debería ser 5 por desvío): ${dist}`);
+};

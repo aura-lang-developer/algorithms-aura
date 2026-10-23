@@ -1,0 +1,9 @@
+import { LinearSearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 11: Linear Search ===");
+  let lista: []Int = [10, 50, 30, 70, 80, 20];
+  let objetivo = 70;
+  let idx = LinearSearch(lista, objetivo);
+  println(`Buscando ${objetivo} -> Índice encontrado: ${idx}`);
+};

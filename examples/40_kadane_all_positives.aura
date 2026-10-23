@@ -1,0 +1,9 @@
+import { MaxSubarraySum } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 40: Algoritmo de Kadane con números positivos ===");
+  let nums: []Int = [1, 2, 3, 4, 5];
+  let suma = MaxSubarraySum(nums);
+  println(`Arreglo: ${nums}`);
+  println(`Suma total: ${suma}`);
+};

@@ -1,0 +1,15 @@
+import { NewGraph } from "../src/structures/graph";
+import { Dijkstra } from "../src/algorithms/graphs";
+
+fn main() => {
+  println("=== Ejemplo 23: Algoritmo de Dijkstra (Caminos Mínimos) ===");
+  let mut g = NewGraph(true);
+  let v0 = g.AddVertex("A");
+  let v1 = g.AddVertex("B");
+  let v2 = g.AddVertex("C");
+  g.AddEdge(v0, v1, 4);
+  g.AddEdge(v1, v2, 2);
+  g.AddEdge(v0, v2, 10);
+  let dist = Dijkstra(g, v0, v2);
+  println(`Distancia mínima de ${v0} a ${v2}: ${dist}`);
+};

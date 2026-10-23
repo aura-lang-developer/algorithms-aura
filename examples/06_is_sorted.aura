@@ -1,0 +1,9 @@
+import { IsSorted } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 06: IsSorted (Verificación de orden) ===");
+  let arr1: []Int = [1, 2, 3, 4, 5];
+  let arr2: []Int = [5, 3, 1, 4, 2];
+  println(`arr1 ordenado: ${IsSorted(arr1)}`);
+  println(`arr2 ordenado: ${IsSorted(arr2)}`);
+};

@@ -1,0 +1,11 @@
+import { QuickSort } from "../src/algorithms/sorting";
+import { BinarySearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 20: Pipeline de Ordenamiento y Búsqueda ===");
+  let desordenado: []Int = [89, 12, 45, 2, 99, 34];
+  let ordenado = QuickSort(desordenado);
+  println(`Arreglo ordenado: ${ordenado}`);
+  let idx = BinarySearch(ordenado, 45);
+  println(`Elemento 45 ubicado en posición ordenada: ${idx}`);
+};

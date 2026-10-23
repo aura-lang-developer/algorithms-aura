@@ -1,0 +1,8 @@
+import { Fibonacci } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 31: Sucesión de Fibonacci con Programación Dinámica ===");
+  let n = 10;
+  let val = Fibonacci(n);
+  println(`Fibonacci(${n}) = ${val}`);
+};

@@ -1,0 +1,9 @@
+import { CloneSlice } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 07: CloneSlice (Clonación de arreglos) ===");
+  let original: []Int = [100, 200, 300];
+  let copia = CloneSlice(original);
+  println(`Original: ${original}`);
+  println(`Copia:    ${copia}`);
+};

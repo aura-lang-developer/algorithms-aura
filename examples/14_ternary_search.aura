@@ -1,0 +1,9 @@
+import { TernarySearch } from "../src/algorithms/searching";
+
+fn main() => {
+  println("=== Ejemplo 14: Ternary Search ===");
+  let ordenado: []Int = [1, 5, 9, 12, 18, 25, 30, 45, 60];
+  let objetivo = 25;
+  let idx = TernarySearch(ordenado, objetivo);
+  println(`Buscando ${objetivo} con búsqueda ternaria -> Índice: ${idx}`);
+};

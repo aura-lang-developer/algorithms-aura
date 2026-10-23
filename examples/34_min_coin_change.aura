@@ -1,0 +1,9 @@
+import { MinCoinChange } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 34: Cambio Mínimo de Monedas (Coin Change) ===");
+  let monedas: []Int = [1, 2, 5];
+  let monto = 11;
+  let minMonedas = MinCoinChange(monedas, monto);
+  println(`Monedas para cambio de ${monto}: ${minMonedas}`);
+};

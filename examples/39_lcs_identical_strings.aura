@@ -1,0 +1,8 @@
+import { LongestCommonSubsequence } from "../src/algorithms/dynamic_programming";
+
+fn main() => {
+  println("=== Ejemplo 39: LCS en Cadenas Idénticas ===");
+  let texto = "ALGORITMO";
+  let len = LongestCommonSubsequence(texto, texto);
+  println(`LCS de "${texto}" con sí misma: ${len}`);
+};

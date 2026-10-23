@@ -1,0 +1,9 @@
+import { InsertionSort } from "../src/algorithms/sorting";
+
+fn main() => {
+  println("=== Ejemplo 03: Insertion Sort ===");
+  let datos: []Int = [12, 11, 13, 5, 6];
+  println(`Original:  ${datos}`);
+  let ordenado = InsertionSort(datos);
+  println(`Ordenado:  ${ordenado}`);
+};
